@@ -9,19 +9,28 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 )
 
+type AwsCredential struct {
+	Region              string `json:"region,omitempty"`
+	AccessKey           string `json:"accessKey,omitempty"`
+	SecretKey           string `json:"secretKey,omitempty"`
+	CrossAccountRoleArn string `json:"crossAccountRoleArn,omitempty"`
+	ExternalId          string `json:"externalId,omitempty"`
+}
+
 type QueryType string
 
 const (
-	QueryTypeJSON       QueryType = "json"
-	QueryTypeCSV        QueryType = "csv"
-	QueryTypeTSV        QueryType = "tsv"
-	QueryTypeXML        QueryType = "xml"
-	QueryTypeGraphQL    QueryType = "graphql"
-	QueryTypeHTML       QueryType = "html"
-	QueryTypeUQL        QueryType = "uql"
-	QueryTypeGROQ       QueryType = "groq"
-	QueryTypeGSheets    QueryType = "google-sheets"
-	QueryTypeAppKubeAPI QueryType = "appkube-api"
+	QueryTypeJSON              QueryType = "json"
+	QueryTypeCSV               QueryType = "csv"
+	QueryTypeTSV               QueryType = "tsv"
+	QueryTypeXML               QueryType = "xml"
+	QueryTypeGraphQL           QueryType = "graphql"
+	QueryTypeHTML              QueryType = "html"
+	QueryTypeUQL               QueryType = "uql"
+	QueryTypeGROQ              QueryType = "groq"
+	QueryTypeGSheets           QueryType = "google-sheets"
+	QueryTypeAppKubeAPI        QueryType = "appkube-api"
+	QueryTypeAppKubeCloudWatch QueryType = "appkube-cloudwatch"
 )
 
 type InfinityParser string
@@ -71,8 +80,33 @@ type Query struct {
 	ServiceType         string                 `json:"serviceType,omitempty"`
 	AwsxUrl             string                 `json:"awsxUrl,omitempty"`
 	CmdbUrl             string                 `json:"cmdbUrl,omitempty"`
+	VaultUrl            string                 `json:"vaultUrl,omitempty"`
 	AccountId           string                 `json:"accountId,omitempty"`
 	Zone                string                 `json:"zone,omitempty"`
+	LogType             string                 `json:"logType,omitempty"`
+	SubType             string                 `json:"subType,omitempty"`
+	Limit               *int64                 `json:"limit"`
+	Time                int64                  `json:"time"`
+	StartTime           *int64                 `json:"startTime"`
+	EndTime             *int64                 `json:"endTime"`
+	LogGroupName        string                 `json:"logGroupName,omitempty"`
+	LogGroupNames       []string               `json:"logGroupNames"`
+	LogGroups           []suggestData          `json:"logGroups"`
+	LogGroupNamePrefix  string                 `json:"logGroupNamePrefix,omitempty"`
+	LogStreamName       string                 `json:"logStreamName,omitempty"`
+	StartFromHead       bool                   `json:"startFromHead"`
+	Region              string                 `json:"region,omitempty"`
+	QueryString         string                 `json:"queryString,omitempty"`
+	QueryId             string                 `json:"queryId,omitempty"`
+	StatsGroups         []string               `json:"statsGroups"`
+	Subtype             string                 `json:"subtype,omitempty"`
+}
+
+// It's copied from metric_find_query.go
+type suggestData struct {
+	Text  string `json:"text"`
+	Value string `json:"value"`
+	Label string `json:"label,omitempty"`
 }
 
 type URLOptionKeyValuePair struct {
@@ -197,4 +231,15 @@ func LoadQuery(ctx context.Context, backendQuery backend.DataQuery, pluginContex
 	}
 	query = ApplyDefaultsToQuery(ctx, query)
 	return ApplyMacros(ctx, query, backendQuery.TimeRange, pluginContext)
+}
+
+// Changes to merge cloudwatch datasource
+func LoadQueryToIdentifyType(backendQuery backend.DataQuery) (Query, error) {
+	var query Query
+	err := json.Unmarshal(backendQuery.JSON, &query)
+	if err != nil {
+		return query, fmt.Errorf("error while parsing the query json. %s", err.Error())
+	}
+	//query = ApplyDefaultsToQuery(ctx, query)
+	return query, err
 }

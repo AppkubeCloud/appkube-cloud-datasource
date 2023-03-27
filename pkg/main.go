@@ -3,10 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/appkube/cloud-datasource/pkg/infinity"
-	"github.com/appkube/cloud-datasource/pkg/models"
 	"github.com/appkube/cloud-datasource/pkg/pluginhost"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
+	"time"
 )
 
 func main() {
@@ -33,27 +32,68 @@ func main() {
 	//}
 
 	// Remove below code. Its only for POC
+	vaultUrl := "http://localhost:5057/api/vault/accountId"
 	cmdbUrl := "http://localhost:5057/api/service-detail/search-with-filter"
-	awsxApiUrl := "http://localhost:7000/awsx/appconfig?accountId="
+	//awsxApiUrl := "http://localhost:7000/awsx/appconfig?accountId="
 	accountId := "657907747545"
 	//zone := "us-east-1"
-	client, err := infinity.NewClient(models.InfinitySettings{})
-	if err != nil {
-		fmt.Println("Error getting client: ", err)
-	}
+	//client, err := infinity.NewClient(models.InfinitySettings{})
+	//if err != nil {
+	//	fmt.Println("Error getting client: ", err)
+	//}
 
-	res := pluginhost.QueryData(context.Background(), backend.DataQuery{
+	//res := pluginhost.QueryData(nil, 200, context.Background(), backend.DataQuery{
+	//	JSON: []byte(fmt.Sprintf(`{
+	//				"type": "appkube-cloudwatch",
+	//				"source": "url",
+	//				"product": "EMS",
+	//				"environment": "PROD",
+	//				"module": "Admission",
+	//				"serviceType": "java app service",
+	//				"awsxUrl": "%s",
+	//				"cmdbUrl": "%s",
+	//				"vaultUrl":"%s",
+	//				"accountId": "%s"
+	//			}`, awsxApiUrl, cmdbUrl, vaultUrl, accountId)),
+	//}, *client, map[string]string{}, backend.PluginContext{})
+	//fmt.Println("Response: ", res.Frames)
+
+	//host := pluginhost.PluginHost{}
+	host := pluginhost.NewDatasource().QueryDataHandler
+	fmt.Println("1 host")
+	dt := backend.TimeRange{
+		From: time.Date(2000, 11, 17, 20, 34, 58, 651387237, time.UTC),
+		To:   time.Now(),
+	}
+	dataQueryObj := backend.DataQuery{
 		JSON: []byte(fmt.Sprintf(`{
-					"type": "appkube-api",
-					"source": "url",
-					"product": "EMS",
-					"environment": "PROD",
-					"module": "Admission",
-					"serviceType": "java app service",
-					"awsxUrl": "%s",
-					"cmdbUrl": "%s",
-					"accountId": "%s"
-				}`, awsxApiUrl, cmdbUrl, accountId)),
-	}, *client, map[string]string{}, backend.PluginContext{})
-	fmt.Println("Response: ", res.Frames)
+						"type": "appkube-cloudwatch",
+						"queryType":"logAction",
+						"source": "url",
+						"product": "EMS",
+						"environment": "PROD",
+						"module": "Admission",
+						"serviceType": "java app service",
+						"cmdbUrl": "%s",
+						"vaultUrl":"%s",
+						"accountId": "%s",
+						"logGroupName":"/aws/lambda/cronlike",
+						"logGroupNames":["/aws/lambda/cronlike"],
+						"queryString":"filter @message like /error/| stats count() as ErrorCount",
+						"subType":"StartQuery",
+						"startFromHead":true
+					}`, cmdbUrl, vaultUrl, accountId)),
+		TimeRange: dt,
+	}
+	fmt.Println("2 dataQueryObj")
+	ary := []backend.DataQuery{dataQueryObj}
+	fmt.Println("3 any")
+	req := &backend.QueryDataRequest{
+		Queries: ary,
+	}
+	res, err := host.QueryData(context.Background(), req)
+	if err != nil {
+		fmt.Println("Error getting QueryData: ", err)
+	}
+	fmt.Println("Response: ", res)
 }
