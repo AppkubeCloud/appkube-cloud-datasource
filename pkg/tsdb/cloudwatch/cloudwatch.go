@@ -31,7 +31,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/resourcegroupstaggingapi/resourcegroupstaggingapiiface"
 	"github.com/grafana/grafana-aws-sdk/pkg/awsds"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
@@ -81,7 +80,6 @@ func ProvideService(httpClientProvider httpclient.Provider, awsCreds *dsModels.A
 	logger.Debug("Initializing")
 
 	executor := newExecutor(awsds.NewSessionCache(), awsCreds)
-	//executor := newExecutor(awsSessionConfig, awsCreds)
 
 	return &CloudWatchService{
 		//Cfg:      cfg,
@@ -131,12 +129,12 @@ func newExecutor(sessions SessionCache, awsCreds *dsModels.AwsCredential) *cloud
 
 func (e *cloudWatchExecutor) getRequestContext(pluginCtx backend.PluginContext, region string) (models.RequestContext, error) {
 	r := region
-	instance, err := e.getInstance(pluginCtx)
+	//instance, err := e.getInstance(pluginCtx)
 	if region == defaultRegion {
-		if err != nil {
-			return models.RequestContext{}, err
-		}
-		r = instance.Settings.Region
+		//if err != nil {
+		//	return models.RequestContext{}, err
+		//}
+		r = e.AwsCreds.Region
 	}
 
 	sess, err := e.newSession(pluginCtx, r)
@@ -147,29 +145,29 @@ func (e *cloudWatchExecutor) getRequestContext(pluginCtx backend.PluginContext, 
 		OAMClientProvider:     NewOAMAPI(sess),
 		MetricsClientProvider: clients.NewMetricsClient(NewMetricsAPI(sess)),
 		LogsAPIProvider:       NewLogsAPI(sess),
-		Settings:              instance.Settings,
+		//Settings:              instance.Settings,
 		//Features:              e.features,
 	}, nil
 }
 
-func NewInstanceSettings(httpClientProvider httpclient.Provider) datasource.InstanceFactoryFunc {
-	return func(settings backend.DataSourceInstanceSettings) (instancemgmt.Instance, error) {
-		instanceSettings, err := models.LoadCloudWatchSettings(settings)
-		if err != nil {
-			return nil, fmt.Errorf("error reading settings: %w", err)
-		}
-
-		httpClient, err := httpClientProvider.New()
-		if err != nil {
-			return nil, fmt.Errorf("error creating http client: %w", err)
-		}
-
-		return DataSource{
-			Settings:   instanceSettings,
-			HTTPClient: httpClient,
-		}, nil
-	}
-}
+//func NewInstanceSettings(httpClientProvider httpclient.Provider) datasource.InstanceFactoryFunc {
+//	return func(settings backend.DataSourceInstanceSettings) (instancemgmt.Instance, error) {
+//		instanceSettings, err := models.LoadCloudWatchSettings(settings)
+//		if err != nil {
+//			return nil, fmt.Errorf("error reading settings: %w", err)
+//		}
+//
+//		httpClient, err := httpClientProvider.New()
+//		if err != nil {
+//			return nil, fmt.Errorf("error creating http client: %w", err)
+//		}
+//
+//		return DataSource{
+//			Settings:   instanceSettings,
+//			HTTPClient: httpClient,
+//		}, nil
+//	}
+//}
 
 // cloudWatchExecutor executes CloudWatch requests.
 type cloudWatchExecutor struct {
@@ -246,71 +244,63 @@ func (e *cloudWatchExecutor) newSession(pluginCtx backend.PluginContext, region 
 	//	region = instance.Settings.Region
 	//}
 
-	return e.sessions.GetSession(awsds.SessionConfig{
-		// https://github.com/appkube/cloud-datasource/issues/46365
-		// HTTPClient: dsInfo.HTTPClient,
-		//Settings: awsds.AWSDatasourceSettings{
-		//	Profile:       instance.Settings.Profile,
-		//	Region:        region,
-		//	AuthType:      instance.Settings.AuthType,
-		//	AssumeRoleARN: instance.Settings.AssumeRoleARN,
-		//	ExternalID:    instance.Settings.ExternalID,
-		//	Endpoint:      instance.Settings.Endpoint,
-		//	DefaultRegion: instance.Settings.Region,
-		//	AccessKey:     instance.Settings.AccessKey,
-		//	SecretKey:     instance.Settings.SecretKey,
-		//},
-		Settings: awsds.AWSDatasourceSettings{
-			//Profile:       instance.Settings.Profile,
-			Region: e.AwsCreds.Region,
-			//AuthType:      instance.Settings.AuthType,
-			AssumeRoleARN: e.AwsCreds.CrossAccountRoleArn,
-			ExternalID:    e.AwsCreds.ExternalId,
-			//Endpoint:      instance.Settings.Endpoint,
-			//DefaultRegion: instance.Settings.Region,
-			AccessKey: e.AwsCreds.AccessKey,
-			SecretKey: e.AwsCreds.SecretKey,
-		},
-		UserAgentName: aws.String("Cloudwatch"),
-	})
+	//return e.sessions.GetSession(awsds.SessionConfig{
+	//	//https://github.com/appkube/cloud-datasource/issues/46365
+	//	//HTTPClient: dsInfo.HTTPClient,
+	//	Settings: awsds.AWSDatasourceSettings{
+	//		Profile:       instance.Settings.Profile,
+	//		Region:        region,
+	//		AuthType:      instance.Settings.AuthType,
+	//		AssumeRoleARN: instance.Settings.AssumeRoleARN,
+	//		ExternalID:    instance.Settings.ExternalID,
+	//		Endpoint:      instance.Settings.Endpoint,
+	//		DefaultRegion: instance.Settings.Region,
+	//		AccessKey:     instance.Settings.AccessKey,
+	//		SecretKey:     instance.Settings.SecretKey,
+	//	},
+	//	UserAgentName: aws.String("Cloudwatch"),
+	//})
+
+	return e.assumeRoleSession, nil
+
 }
 
 func (e *cloudWatchExecutor) getCWClient(pluginCtx backend.PluginContext, region string) (cloudwatchiface.CloudWatchAPI, error) {
-	//sess, err := e.newSession(pluginCtx, region)
-	//if err != nil {
-	//	return nil, err
-	//}
-	return NewCWClient(e.assumeRoleSession), nil
+	sess, err := e.newSession(pluginCtx, region)
+	if err != nil {
+		return nil, err
+	}
+	return NewCWClient(sess), nil
 }
 
 func (e *cloudWatchExecutor) getCWLogsClient(pluginCtx backend.PluginContext, region string) (cloudwatchlogsiface.CloudWatchLogsAPI, error) {
-	//sess, err := e.newSession(pluginCtx, region)
-	//if err != nil {
-	//	return nil, err
-	//}
+	sess, err := e.newSession(pluginCtx, region)
+	if err != nil {
+		return nil, err
+	}
 
-	logsClient := newCWLogsClient(e.assumeRoleSession)
+	logsClient := newCWLogsClient(sess)
 
 	return logsClient, nil
 }
 
-func (e *cloudWatchExecutor) getEC2Client(pluginCtx backend.PluginContext, region string, awsCreds *dsModels.AwsCredential) (ec2iface.EC2API, error) {
-	//sess, err := e.newSession(pluginCtx, region)
-	//if err != nil {
-	//	return nil, err
-	//}
+func (e *cloudWatchExecutor) getEC2Client(pluginCtx backend.PluginContext, region string) (ec2iface.EC2API, error) {
+	sess, err := e.newSession(pluginCtx, region)
+	if err != nil {
+		return nil, err
+	}
 
-	return newEC2Client(e.assumeRoleSession), nil
+	return newEC2Client(sess), nil
 }
 
-func (e *cloudWatchExecutor) getRGTAClient(pluginCtx backend.PluginContext, region string, awsCreds *dsModels.AwsCredential) (resourcegroupstaggingapiiface.ResourceGroupsTaggingAPIAPI,
+func (e *cloudWatchExecutor) getRGTAClient(pluginCtx backend.PluginContext, region string) (resourcegroupstaggingapiiface.ResourceGroupsTaggingAPIAPI,
 	error) {
-	//sess, err := e.newSession(pluginCtx, region)
-	//if err != nil {
-	//	return nil, err
-	//}
+	sess, err := e.newSession(pluginCtx, region)
+	if err != nil {
+		return nil, err
+	}
 
-	return newRGTAClient(e.assumeRoleSession), nil
+	return newRGTAClient(sess), nil
 }
 
 func (e *cloudWatchExecutor) alertQuery(ctx context.Context, logsClient cloudwatchlogsiface.CloudWatchLogsAPI,
@@ -399,11 +389,11 @@ func (e *cloudWatchExecutor) executeLogAlertQuery(ctx context.Context, req *back
 
 		region := model.Region
 		if model.Region == "" || region == defaultRegion {
-			instance, err := e.getInstance(req.PluginContext)
+			//instance, err := e.getInstance(req.PluginContext)
 			if err != nil {
 				return nil, err
 			}
-			model.Region = instance.Settings.Region
+			model.Region = e.AwsCreds.Region //instance.Settings.Region
 		}
 
 		logsClient, err := e.getCWLogsClient(req.PluginContext, region)
@@ -439,16 +429,16 @@ func (e *cloudWatchExecutor) executeLogAlertQuery(ctx context.Context, req *back
 	return resp, nil
 }
 
-func (e *cloudWatchExecutor) getInstance(pluginCtx backend.PluginContext) (*DataSource, error) {
-	i, err := e.im.Get(pluginCtx)
-	if err != nil {
-		return nil, err
-	}
-
-	instance := i.(DataSource)
-
-	return &instance, nil
-}
+//func (e *cloudWatchExecutor) getInstance(pluginCtx backend.PluginContext) (*DataSource, error) {
+//	i, err := e.im.Get(pluginCtx)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	instance := i.(DataSource)
+//
+//	return &instance, nil
+//}
 
 func isTerminated(queryStatus string) bool {
 	return queryStatus == "Complete" || queryStatus == "Cancelled" || queryStatus == "Failed" || queryStatus == "Timeout"

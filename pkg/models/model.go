@@ -100,6 +100,16 @@ type Query struct {
 	QueryId             string                 `json:"queryId,omitempty"`
 	StatsGroups         []string               `json:"statsGroups"`
 	Subtype             string                 `json:"subtype,omitempty"`
+	QueryType           string                 `json:"queryType,omitempty"`
+	PrefixMatching      bool                   `json:"prefixMatching"`
+	Namespace           string                 `json:"namespace,omitempty"`
+	MetricName          string                 `json:"metricName,omitempty"`
+	Dimensions          map[string]interface{} `json:"dimensions"`
+	Statistic           *string                `json:"statistic,omitempty"`
+	Period              string                 `json:"period,omitempty"`
+	ActionPrefix        string                 `json:"actionPrefix,omitempty"`
+	AlarmNamePrefix     string                 `json:"alarmNamePrefix,omitempty"`
+	Profile             string                 `json:"profile,omitempty"`
 }
 
 // It's copied from metric_find_query.go

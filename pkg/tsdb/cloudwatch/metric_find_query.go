@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	dsModels "github.com/appkube/cloud-datasource/pkg/models"
 	"net/url"
 	"reflect"
 	"sort"
@@ -45,20 +44,20 @@ func parseMultiSelectValue(input string) []string {
 
 // Whenever this list is updated, the frontend list should also be updated.
 // Please update the region list in public/app/plugins/datasource/cloudwatch/partials/config.html
-func (e *cloudWatchExecutor) handleGetRegions(pluginCtx backend.PluginContext, parameters url.Values, awsCreds *dsModels.AwsCredential) ([]suggestData, error) {
-	instance, err := e.getInstance(pluginCtx)
-	if err != nil {
-		return nil, err
-	}
+func (e *cloudWatchExecutor) handleGetRegions(pluginCtx backend.PluginContext) ([]suggestData, error) {
+	//instance, err := e.getInstance(pluginCtx)
+	//if err != nil {
+	//	return nil, err
+	//}
 
-	profile := instance.Settings.Profile
+	profile := "" //instance.Settings.Profile
 	if cache, ok := regionCache.Load(profile); ok {
 		if cache2, ok2 := cache.([]suggestData); ok2 {
 			return cache2, nil
 		}
 	}
 
-	client, err := e.getEC2Client(pluginCtx, defaultRegion, awsCreds)
+	client, err := e.getEC2Client(pluginCtx, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -94,12 +93,12 @@ func (e *cloudWatchExecutor) handleGetRegions(pluginCtx backend.PluginContext, p
 	return result, nil
 }
 
-func (e *cloudWatchExecutor) handleGetEbsVolumeIds(pluginCtx backend.PluginContext, parameters url.Values, awsCreds *dsModels.AwsCredential) ([]suggestData, error) {
+func (e *cloudWatchExecutor) handleGetEbsVolumeIds(pluginCtx backend.PluginContext, parameters url.Values) ([]suggestData, error) {
 	region := parameters.Get("region")
 	instanceId := parameters.Get("instanceId")
 
 	instanceIds := aws.StringSlice(parseMultiSelectValue(instanceId))
-	instances, err := e.ec2DescribeInstances(pluginCtx, region, nil, instanceIds, awsCreds)
+	instances, err := e.ec2DescribeInstances(pluginCtx, region, nil, instanceIds)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +115,7 @@ func (e *cloudWatchExecutor) handleGetEbsVolumeIds(pluginCtx backend.PluginConte
 	return result, nil
 }
 
-func (e *cloudWatchExecutor) handleGetEc2InstanceAttribute(pluginCtx backend.PluginContext, parameters url.Values, awsCreds *dsModels.AwsCredential) ([]suggestData, error) {
+func (e *cloudWatchExecutor) handleGetEc2InstanceAttribute(pluginCtx backend.PluginContext, parameters url.Values) ([]suggestData, error) {
 	region := parameters.Get("region")
 	attributeName := parameters.Get("attributeName")
 	filterJson := parameters.Get("filters")
@@ -143,7 +142,7 @@ func (e *cloudWatchExecutor) handleGetEc2InstanceAttribute(pluginCtx backend.Plu
 		}
 	}
 
-	instances, err := e.ec2DescribeInstances(pluginCtx, region, filters, nil, awsCreds)
+	instances, err := e.ec2DescribeInstances(pluginCtx, region, filters, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +200,7 @@ func (e *cloudWatchExecutor) handleGetEc2InstanceAttribute(pluginCtx backend.Plu
 	return result, nil
 }
 
-func (e *cloudWatchExecutor) handleGetResourceArns(pluginCtx backend.PluginContext, parameters url.Values, awsCreds *dsModels.AwsCredential) ([]suggestData, error) {
+func (e *cloudWatchExecutor) handleGetResourceArns(pluginCtx backend.PluginContext, parameters url.Values) ([]suggestData, error) {
 	region := parameters.Get("region")
 	resourceType := parameters.Get("resourceType")
 	tagsJson := parameters.Get("tags")
@@ -231,7 +230,7 @@ func (e *cloudWatchExecutor) handleGetResourceArns(pluginCtx backend.PluginConte
 	var resourceTypes []*string
 	resourceTypes = append(resourceTypes, &resourceType)
 
-	resources, err := e.resourceGroupsGetResources(pluginCtx, region, filters, resourceTypes, awsCreds)
+	resources, err := e.resourceGroupsGetResources(pluginCtx, region, filters, resourceTypes)
 	if err != nil {
 		return nil, err
 	}
@@ -245,13 +244,13 @@ func (e *cloudWatchExecutor) handleGetResourceArns(pluginCtx backend.PluginConte
 	return result, nil
 }
 
-func (e *cloudWatchExecutor) ec2DescribeInstances(pluginCtx backend.PluginContext, region string, filters []*ec2.Filter, instanceIds []*string, awsCreds *dsModels.AwsCredential) (*ec2.DescribeInstancesOutput, error) {
+func (e *cloudWatchExecutor) ec2DescribeInstances(pluginCtx backend.PluginContext, region string, filters []*ec2.Filter, instanceIds []*string) (*ec2.DescribeInstancesOutput, error) {
 	params := &ec2.DescribeInstancesInput{
 		Filters:     filters,
 		InstanceIds: instanceIds,
 	}
 
-	client, err := e.getEC2Client(pluginCtx, region, awsCreds)
+	client, err := e.getEC2Client(pluginCtx, region)
 	if err != nil {
 		return nil, err
 	}
@@ -268,13 +267,13 @@ func (e *cloudWatchExecutor) ec2DescribeInstances(pluginCtx backend.PluginContex
 }
 
 func (e *cloudWatchExecutor) resourceGroupsGetResources(pluginCtx backend.PluginContext, region string, filters []*resourcegroupstaggingapi.TagFilter,
-	resourceTypes []*string, awsCreds *dsModels.AwsCredential) (*resourcegroupstaggingapi.GetResourcesOutput, error) {
+	resourceTypes []*string) (*resourcegroupstaggingapi.GetResourcesOutput, error) {
 	params := &resourcegroupstaggingapi.GetResourcesInput{
 		ResourceTypeFilters: resourceTypes,
 		TagFilters:          filters,
 	}
 
-	client, err := e.getRGTAClient(pluginCtx, region, awsCreds)
+	client, err := e.getRGTAClient(pluginCtx, region)
 	if err != nil {
 		return nil, err
 	}
