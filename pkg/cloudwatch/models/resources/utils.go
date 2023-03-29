@@ -3,8 +3,7 @@ package resources
 import (
 	"encoding/json"
 	"fmt"
-
-	"github.com/appkube/cloud-datasource/pkg/tsdb/cloudwatch/constants"
+	"github.com/appkube/cloud-datasource/pkg/cloudwatch/constants"
 )
 
 func parseDimensionFilter(dimensionFilter string) ([]*Dimension, error) {

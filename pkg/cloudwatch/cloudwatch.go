@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/appkube/cloud-datasource/pkg/cloudwatch/clients"
+	models2 "github.com/appkube/cloud-datasource/pkg/cloudwatch/models"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/sts"
@@ -14,10 +16,7 @@ import (
 	"github.com/appkube/cloud-datasource/pkg/infra/httpclient"
 	"github.com/appkube/cloud-datasource/pkg/infra/log"
 	dsModels "github.com/appkube/cloud-datasource/pkg/models"
-	//"github.com/appkube/cloud-datasource/pkg/services/featuremgmt"
-	//"github.com/appkube/cloud-datasource/pkg/setting"
-	"github.com/appkube/cloud-datasource/pkg/tsdb/cloudwatch/clients"
-	"github.com/appkube/cloud-datasource/pkg/tsdb/cloudwatch/models"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -51,7 +50,7 @@ type DataQueryJson struct {
 }
 
 type DataSource struct {
-	Settings   models.CloudWatchSettings
+	Settings   models2.CloudWatchSettings
 	HTTPClient *http.Client
 }
 
@@ -127,7 +126,7 @@ func newExecutor(sessions SessionCache, awsCreds *dsModels.AwsCredential) *cloud
 	return e
 }
 
-func (e *cloudWatchExecutor) getRequestContext(pluginCtx backend.PluginContext, region string) (models.RequestContext, error) {
+func (e *cloudWatchExecutor) getRequestContext(pluginCtx backend.PluginContext, region string) (models2.RequestContext, error) {
 	r := region
 	//instance, err := e.getInstance(pluginCtx)
 	if region == defaultRegion {
@@ -139,9 +138,9 @@ func (e *cloudWatchExecutor) getRequestContext(pluginCtx backend.PluginContext, 
 
 	sess, err := e.newSession(pluginCtx, r)
 	if err != nil {
-		return models.RequestContext{}, err
+		return models2.RequestContext{}, err
 	}
-	return models.RequestContext{
+	return models2.RequestContext{
 		OAMClientProvider:     NewOAMAPI(sess),
 		MetricsClientProvider: clients.NewMetricsClient(NewMetricsAPI(sess)),
 		LogsAPIProvider:       NewLogsAPI(sess),
@@ -447,21 +446,21 @@ func isTerminated(queryStatus string) bool {
 // NewMetricsAPI is a CloudWatch metrics api factory.
 //
 // Stubbable by tests.
-var NewMetricsAPI = func(sess *session.Session) models.CloudWatchMetricsAPIProvider {
+var NewMetricsAPI = func(sess *session.Session) models2.CloudWatchMetricsAPIProvider {
 	return cloudwatch.New(sess)
 }
 
 // NewLogsAPI is a CloudWatch logs api factory.
 //
 // Stubbable by tests.
-var NewLogsAPI = func(sess *session.Session) models.CloudWatchLogsAPIProvider {
+var NewLogsAPI = func(sess *session.Session) models2.CloudWatchLogsAPIProvider {
 	return cloudwatchlogs.New(sess)
 }
 
 // NewOAMAPI is a CloudWatch OAM api factory.
 //
 // Stubbable by tests.
-var NewOAMAPI = func(sess *session.Session) models.OAMClientProvider {
+var NewOAMAPI = func(sess *session.Session) models2.OAMClientProvider {
 	return oam.New(sess)
 }
 

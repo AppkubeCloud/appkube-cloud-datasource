@@ -1,9 +1,9 @@
 package services
 
 import (
-	"github.com/appkube/cloud-datasource/pkg/tsdb/cloudwatch/models"
-	"github.com/appkube/cloud-datasource/pkg/tsdb/cloudwatch/models/resources"
-	"github.com/appkube/cloud-datasource/pkg/tsdb/cloudwatch/utils"
+	"github.com/appkube/cloud-datasource/pkg/cloudwatch/models"
+	resources2 "github.com/appkube/cloud-datasource/pkg/cloudwatch/models/resources"
+	"github.com/appkube/cloud-datasource/pkg/cloudwatch/utils"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 )
@@ -17,7 +17,7 @@ func NewLogGroupsService(logsClient models.CloudWatchLogsAPIProvider, isCrossAcc
 	return &LogGroupsService{logGroupsAPI: logsClient, isCrossAccountEnabled: isCrossAccountEnabled}
 }
 
-func (s *LogGroupsService) GetLogGroups(req resources.LogGroupsRequest) ([]resources.ResourceResponse[resources.LogGroup], error) {
+func (s *LogGroupsService) GetLogGroups(req resources2.LogGroupsRequest) ([]resources2.ResourceResponse[resources2.LogGroup], error) {
 	input := &cloudwatchlogs.DescribeLogGroupsInput{
 		Limit:              aws.Int64(req.Limit),
 		LogGroupNamePrefix: req.LogGroupNamePrefix,
@@ -38,10 +38,10 @@ func (s *LogGroupsService) GetLogGroups(req resources.LogGroupsRequest) ([]resou
 		return nil, err
 	}
 
-	var result []resources.ResourceResponse[resources.LogGroup]
+	var result []resources2.ResourceResponse[resources2.LogGroup]
 	for _, logGroup := range response.LogGroups {
-		result = append(result, resources.ResourceResponse[resources.LogGroup]{
-			Value: resources.LogGroup{
+		result = append(result, resources2.ResourceResponse[resources2.LogGroup]{
+			Value: resources2.LogGroup{
 				Arn:  *logGroup.Arn,
 				Name: *logGroup.LogGroupName,
 			},

@@ -221,7 +221,7 @@ type metricsDataQuery struct {
 	Statistic         *string                `json:"statistic"`
 	Statistics        []*string              `json:"statistics"`
 	TimezoneUTCOffset string                 `json:"timezoneUTCOffset"`
-	QueryType         string                 `json:"type"`
+	QueryType         string                 `json:"queryType"` // type is changed to queryType to solve conflict
 	Hide              *bool                  `json:"hide"`
 	Alias             string                 `json:"alias"`
 	AccountId         *string                `json:"accountId"`

@@ -2,21 +2,21 @@ package routes
 
 import (
 	"encoding/json"
+	models2 "github.com/appkube/cloud-datasource/pkg/cloudwatch/models"
+	"github.com/appkube/cloud-datasource/pkg/cloudwatch/models/resources"
+	"github.com/appkube/cloud-datasource/pkg/cloudwatch/services"
 	"net/http"
 	"net/url"
 	"sort"
 	"strings"
 
-	"github.com/appkube/cloud-datasource/pkg/tsdb/cloudwatch/models"
-	"github.com/appkube/cloud-datasource/pkg/tsdb/cloudwatch/models/resources"
-	"github.com/appkube/cloud-datasource/pkg/tsdb/cloudwatch/services"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 )
 
-func NamespacesHandler(pluginCtx backend.PluginContext, reqCtxFactory models.RequestContextFactoryFunc, _ url.Values) ([]byte, *models.HttpError) {
+func NamespacesHandler(pluginCtx backend.PluginContext, reqCtxFactory models2.RequestContextFactoryFunc, _ url.Values) ([]byte, *models2.HttpError) {
 	reqCtx, err := reqCtxFactory(pluginCtx, "default")
 	if err != nil {
-		return nil, models.NewHttpError("error in NamespacesHandler", http.StatusInternalServerError, err)
+		return nil, models2.NewHttpError("error in NamespacesHandler", http.StatusInternalServerError, err)
 	}
 
 	response := services.GetHardCodedNamespaces()
@@ -33,7 +33,7 @@ func NamespacesHandler(pluginCtx backend.PluginContext, reqCtxFactory models.Req
 
 	namespacesResponse, err := json.Marshal(response)
 	if err != nil {
-		return nil, models.NewHttpError("error in NamespacesHandler", http.StatusInternalServerError, err)
+		return nil, models2.NewHttpError("error in NamespacesHandler", http.StatusInternalServerError, err)
 	}
 
 	return namespacesResponse, nil

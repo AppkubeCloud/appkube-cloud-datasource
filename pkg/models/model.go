@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/appkube/cloud-datasource/pkg/cloudwatch/models"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 )
 
@@ -44,72 +45,81 @@ const (
 )
 
 type Query struct {
-	RefID               string                 `json:"refId"`
-	Type                QueryType              `json:"type"`   // 'json' | 'json-backend' | 'csv' | 'tsv' | 'xml' | 'graphql' | 'html' | 'uql' | 'groq' | 'series' | 'global' | 'google-sheets'
-	Format              string                 `json:"format"` // 'table' | 'timeseries' | 'dataframe' | 'as-is' | 'node-graph-nodes' | 'node-graph-edges'
-	Source              string                 `json:"source"` // 'url' | 'inline' | 'reference' | 'random-walk' | 'expression'
-	RefName             string                 `json:"referenceName,omitempty"`
-	URL                 string                 `json:"url"`
-	URLOptions          URLOptions             `json:"url_options"`
-	Data                string                 `json:"data"`
-	Parser              InfinityParser         `json:"parser"` // 'simple' | 'backend' | 'sqlite' | 'uql' | 'groq'
-	FilterExpression    string                 `json:"filterExpression"`
-	SummarizeExpression string                 `json:"summarizeExpression"`
-	SummarizeBy         string                 `json:"summarizeBy"`
-	UQL                 string                 `json:"uql"`
-	GROQ                string                 `json:"groq"`
-	SQLiteQuery         string                 `json:"sqlite_query"`
-	CSVOptions          InfinityCSVOptions     `json:"csv_options"`
-	JSONOptions         InfinityJSONOptions    `json:"json_options"`
-	RootSelector        string                 `json:"root_selector"`
-	Columns             []InfinityColumn       `json:"columns"`
-	ComputedColumns     []InfinityColumn       `json:"computed_columns"`
-	Filters             []InfinityFilter       `json:"filters"`
-	SeriesCount         int64                  `json:"seriesCount"`
-	Expression          string                 `json:"expression"`
-	Alias               string                 `json:"alias"`
-	DataOverrides       []InfinityDataOverride `json:"dataOverrides"`
-	GlobalQueryID       string                 `json:"global_query_id"`
-	QueryMode           string                 `json:"query_mode"`
-	Spreadsheet         string                 `json:"spreadsheet,omitempty"`
-	SheetName           string                 `json:"sheetName,omitempty"`
-	SheetRange          string                 `json:"range,omitempty"`
-	Product             string                 `json:"product,omitempty"`
-	Environment         string                 `json:"environment,omitempty"`
-	Module              string                 `json:"module,omitempty"`
-	ServiceType         string                 `json:"serviceType,omitempty"`
-	AwsxUrl             string                 `json:"awsxUrl,omitempty"`
-	CmdbUrl             string                 `json:"cmdbUrl,omitempty"`
-	VaultUrl            string                 `json:"vaultUrl,omitempty"`
-	AccountId           string                 `json:"accountId,omitempty"`
-	Zone                string                 `json:"zone,omitempty"`
-	LogType             string                 `json:"logType,omitempty"`
-	SubType             string                 `json:"subType,omitempty"`
-	Limit               *int64                 `json:"limit"`
-	Time                int64                  `json:"time"`
-	StartTime           *int64                 `json:"startTime"`
-	EndTime             *int64                 `json:"endTime"`
-	LogGroupName        string                 `json:"logGroupName,omitempty"`
-	LogGroupNames       []string               `json:"logGroupNames"`
-	LogGroups           []suggestData          `json:"logGroups"`
-	LogGroupNamePrefix  string                 `json:"logGroupNamePrefix,omitempty"`
-	LogStreamName       string                 `json:"logStreamName,omitempty"`
-	StartFromHead       bool                   `json:"startFromHead"`
-	Region              string                 `json:"region,omitempty"`
-	QueryString         string                 `json:"queryString,omitempty"`
-	QueryId             string                 `json:"queryId,omitempty"`
-	StatsGroups         []string               `json:"statsGroups"`
-	Subtype             string                 `json:"subtype,omitempty"`
-	QueryType           string                 `json:"queryType,omitempty"`
-	PrefixMatching      bool                   `json:"prefixMatching"`
-	Namespace           string                 `json:"namespace,omitempty"`
-	MetricName          string                 `json:"metricName,omitempty"`
-	Dimensions          map[string]interface{} `json:"dimensions"`
-	Statistic           *string                `json:"statistic,omitempty"`
-	Period              string                 `json:"period,omitempty"`
-	ActionPrefix        string                 `json:"actionPrefix,omitempty"`
-	AlarmNamePrefix     string                 `json:"alarmNamePrefix,omitempty"`
-	Profile             string                 `json:"profile,omitempty"`
+	RefID               string                   `json:"refId"`
+	Type                QueryType                `json:"type"`   // 'json' | 'json-backend' | 'csv' | 'tsv' | 'xml' | 'graphql' | 'html' | 'uql' | 'groq' | 'series' | 'global' | 'google-sheets'
+	Format              string                   `json:"format"` // 'table' | 'timeseries' | 'dataframe' | 'as-is' | 'node-graph-nodes' | 'node-graph-edges'
+	Source              string                   `json:"source"` // 'url' | 'inline' | 'reference' | 'random-walk' | 'expression'
+	RefName             string                   `json:"referenceName,omitempty"`
+	URL                 string                   `json:"url"`
+	URLOptions          URLOptions               `json:"url_options"`
+	Data                string                   `json:"data"`
+	Parser              InfinityParser           `json:"parser"` // 'simple' | 'backend' | 'sqlite' | 'uql' | 'groq'
+	FilterExpression    string                   `json:"filterExpression"`
+	SummarizeExpression string                   `json:"summarizeExpression"`
+	SummarizeBy         string                   `json:"summarizeBy"`
+	UQL                 string                   `json:"uql"`
+	GROQ                string                   `json:"groq"`
+	SQLiteQuery         string                   `json:"sqlite_query"`
+	CSVOptions          InfinityCSVOptions       `json:"csv_options"`
+	JSONOptions         InfinityJSONOptions      `json:"json_options"`
+	RootSelector        string                   `json:"root_selector"`
+	Columns             []InfinityColumn         `json:"columns"`
+	ComputedColumns     []InfinityColumn         `json:"computed_columns"`
+	Filters             []InfinityFilter         `json:"filters"`
+	SeriesCount         int64                    `json:"seriesCount"`
+	Expression          string                   `json:"expression"`
+	Alias               string                   `json:"alias"`
+	DataOverrides       []InfinityDataOverride   `json:"dataOverrides"`
+	GlobalQueryID       string                   `json:"global_query_id"`
+	QueryMode           string                   `json:"query_mode"`
+	Spreadsheet         string                   `json:"spreadsheet,omitempty"`
+	SheetName           string                   `json:"sheetName,omitempty"`
+	SheetRange          string                   `json:"range,omitempty"`
+	Product             string                   `json:"product,omitempty"`
+	Environment         string                   `json:"environment,omitempty"`
+	Module              string                   `json:"module,omitempty"`
+	ServiceType         string                   `json:"serviceType,omitempty"`
+	AwsxUrl             string                   `json:"awsxUrl,omitempty"`
+	CmdbUrl             string                   `json:"cmdbUrl,omitempty"`
+	VaultUrl            string                   `json:"vaultUrl,omitempty"`
+	AccountId           string                   `json:"accountId,omitempty"`
+	Zone                string                   `json:"zone,omitempty"`
+	LogType             string                   `json:"logType,omitempty"`
+	SubType             string                   `json:"subType,omitempty"`
+	Limit               *int64                   `json:"limit"`
+	Time                int64                    `json:"time"`
+	StartTime           *int64                   `json:"startTime"`
+	EndTime             *int64                   `json:"endTime"`
+	LogGroupName        string                   `json:"logGroupName,omitempty"`
+	LogGroupNames       []string                 `json:"logGroupNames"`
+	LogGroups           []suggestData            `json:"logGroups"`
+	LogGroupNamePrefix  string                   `json:"logGroupNamePrefix,omitempty"`
+	LogStreamName       string                   `json:"logStreamName,omitempty"`
+	StartFromHead       bool                     `json:"startFromHead"`
+	Region              string                   `json:"region,omitempty"`
+	QueryString         string                   `json:"queryString,omitempty"`
+	QueryId             string                   `json:"queryId,omitempty"`
+	StatsGroups         []string                 `json:"statsGroups"`
+	Subtype             string                   `json:"subtype,omitempty"`
+	QueryType           string                   `json:"queryType,omitempty"`
+	PrefixMatching      bool                     `json:"prefixMatching"`
+	Namespace           string                   `json:"namespace,omitempty"`
+	MetricName          string                   `json:"metricName,omitempty"`
+	Dimensions          map[string]interface{}   `json:"dimensions"`
+	Statistic           *string                  `json:"statistic,omitempty"`
+	Period              string                   `json:"period,omitempty"`
+	ActionPrefix        string                   `json:"actionPrefix,omitempty"`
+	AlarmNamePrefix     string                   `json:"alarmNamePrefix,omitempty"`
+	Profile             string                   `json:"profile,omitempty"`
+	Label               *string                  `json:"label"`
+	Id                  string                   `json:"id"`
+	MatchExact          *bool                    `json:"matchExact"`
+	MetricEditorMode    *models.MetricEditorMode `json:"metricEditorMode"`
+	MetricQueryType     models.MetricQueryType   `json:"metricQueryType"`
+	SqlExpression       string                   `json:"sqlExpression"`
+	Statistics          []*string                `json:"statistics"`
+	TimezoneUTCOffset   string                   `json:"timezoneUTCOffset"`
+	Hide                *bool                    `json:"hide"`
 }
 
 // It's copied from metric_find_query.go

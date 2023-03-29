@@ -2,6 +2,7 @@ package cloudwatch
 
 import (
 	"fmt"
+	"github.com/appkube/cloud-datasource/pkg/cloudwatch/models"
 	"sort"
 	"strconv"
 	"strings"
@@ -10,8 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
-	//"github.com/appkube/cloud-datasource/pkg/services/featuremgmt"
-	"github.com/appkube/cloud-datasource/pkg/tsdb/cloudwatch/models"
 )
 
 func (e *cloudWatchExecutor) parseResponse(startTime time.Time, endTime time.Time, metricDataOutputs []*cloudwatch.GetMetricDataOutput,

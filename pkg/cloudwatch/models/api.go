@@ -1,14 +1,13 @@
 package models
 
 import (
+	resources2 "github.com/appkube/cloud-datasource/pkg/cloudwatch/models/resources"
 	"net/url"
 
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go/service/oam"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
-	//"github.com/appkube/cloud-datasource/pkg/services/featuremgmt"
-	"github.com/appkube/cloud-datasource/pkg/tsdb/cloudwatch/models/resources"
 )
 
 type RequestContextFactoryFunc func(pluginCtx backend.PluginContext, region string) (reqCtx RequestContext, err error)
@@ -24,13 +23,13 @@ type RequestContext struct {
 }
 
 type ListMetricsProvider interface {
-	GetDimensionKeysByDimensionFilter(resources.DimensionKeysRequest) ([]resources.ResourceResponse[string], error)
-	GetDimensionValuesByDimensionFilter(resources.DimensionValuesRequest) ([]resources.ResourceResponse[string], error)
-	GetMetricsByNamespace(r resources.MetricsRequest) ([]resources.ResourceResponse[resources.Metric], error)
+	GetDimensionKeysByDimensionFilter(resources2.DimensionKeysRequest) ([]resources2.ResourceResponse[string], error)
+	GetDimensionValuesByDimensionFilter(resources2.DimensionValuesRequest) ([]resources2.ResourceResponse[string], error)
+	GetMetricsByNamespace(r resources2.MetricsRequest) ([]resources2.ResourceResponse[resources2.Metric], error)
 }
 
 type MetricsClientProvider interface {
-	ListMetricsWithPageLimit(params *cloudwatch.ListMetricsInput) ([]resources.MetricResponse, error)
+	ListMetricsWithPageLimit(params *cloudwatch.ListMetricsInput) ([]resources2.MetricResponse, error)
 }
 
 type CloudWatchMetricsAPIProvider interface {
@@ -47,9 +46,9 @@ type OAMClientProvider interface {
 }
 
 type LogGroupsProvider interface {
-	GetLogGroups(request resources.LogGroupsRequest) ([]resources.ResourceResponse[resources.LogGroup], error)
+	GetLogGroups(request resources2.LogGroupsRequest) ([]resources2.ResourceResponse[resources2.LogGroup], error)
 }
 
 type AccountsProvider interface {
-	GetAccountsForCurrentUserOrRole() ([]resources.ResourceResponse[resources.Account], error)
+	GetAccountsForCurrentUserOrRole() ([]resources2.ResourceResponse[resources2.Account], error)
 }

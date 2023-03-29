@@ -1,18 +1,17 @@
 package cloudwatch
 
 import (
+	models2 "github.com/appkube/cloud-datasource/pkg/cloudwatch/models"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 
 	"github.com/appkube/cloud-datasource/pkg/infra/log"
-	//"github.com/appkube/cloud-datasource/pkg/services/featuremgmt"
-	"github.com/appkube/cloud-datasource/pkg/tsdb/cloudwatch/models"
 )
 
 func (e *cloudWatchExecutor) buildMetricDataInput(logger log.Logger, startTime time.Time, endTime time.Time,
-	queries []*models.CloudWatchQuery) (*cloudwatch.GetMetricDataInput, error) {
+	queries []*models2.CloudWatchQuery) (*cloudwatch.GetMetricDataInput, error) {
 	metricDataInput := &cloudwatch.GetMetricDataInput{
 		StartTime: aws.Time(startTime),
 		EndTime:   aws.Time(endTime),
@@ -31,7 +30,7 @@ func (e *cloudWatchExecutor) buildMetricDataInput(logger log.Logger, startTime t
 	for _, query := range queries {
 		metricDataQuery, err := e.buildMetricDataQuery(logger, query)
 		if err != nil {
-			return nil, &models.QueryError{Err: err, RefID: query.RefId}
+			return nil, &models2.QueryError{Err: err, RefID: query.RefId}
 		}
 		metricDataInput.MetricDataQueries = append(metricDataInput.MetricDataQueries, metricDataQuery)
 	}

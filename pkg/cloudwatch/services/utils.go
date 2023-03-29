@@ -1,9 +1,8 @@
 package services
 
 import (
+	"github.com/appkube/cloud-datasource/pkg/cloudwatch/models/resources"
 	"strings"
-
-	"github.com/appkube/cloud-datasource/pkg/tsdb/cloudwatch/models/resources"
 )
 
 func valuesToListMetricRespone[T any](values []T) []resources.ResourceResponse[T] {

@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/appkube/cloud-datasource/pkg/cloudwatch"
 	"github.com/appkube/cloud-datasource/pkg/infra/httpclient"
 	"time"
 
 	"github.com/appkube/cloud-datasource/pkg/infinity"
 	"github.com/appkube/cloud-datasource/pkg/models"
-	"github.com/appkube/cloud-datasource/pkg/tsdb/cloudwatch"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
 )
@@ -18,9 +18,9 @@ import (
 // QueryData handles multiple queries and returns multiple responses.
 func (ds *PluginHost) QueryData(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
 	response := backend.NewQueryDataResponse()
-	//client, err := getInstance(ds.im, req.PluginContext) // to be uncomment when local testing done
+	client, err := getInstance(ds.im, req.PluginContext) // to be uncomment when local testing done
 
-	infClient, err := infinity.NewClient(models.InfinitySettings{})
+	//infClient, err := infinity.NewClient(models.InfinitySettings{})
 	if err != nil {
 		backend.Logger.Error("error getting infinity instance", "error", err.Error())
 		return response, fmt.Errorf("error getting infinity instance. %w", err)
@@ -33,12 +33,12 @@ func (ds *PluginHost) QueryData(ctx context.Context, req *backend.QueryDataReque
 			backend.Logger.Error("error un-marshaling the query", "error", err.Error())
 			return response, fmt.Errorf("error un-marshaling the query. %w", err)
 		}
-		cmdbResp, cmdbStatusCode, _, err := getCmdbData(ctx, *infClient, query, req.Headers)
+		cmdbResp, cmdbStatusCode, _, err := getCmdbData(ctx, *client.client, query, req.Headers)
 		if err != nil {
 			backend.Logger.Error("error in getting cmdb response", "error", err.Error())
 			return response, fmt.Errorf("error in getting cmdb response. %w", err)
 		}
-		vaultResp, vaultStatusCode, _, err := getAwsCredentials(ctx, *infClient, query, req.Headers)
+		vaultResp, vaultStatusCode, _, err := getAwsCredentials(ctx, *client.client, query, req.Headers)
 		if err != nil {
 			backend.Logger.Error("error in getting aws credentials", "error", err.Error())
 			return response, fmt.Errorf("error in getting aws credentials. %w", err)
@@ -70,12 +70,10 @@ func (ds *PluginHost) QueryData(ctx context.Context, req *backend.QueryDataReque
 			}
 			response = res
 		default:
-			res := QueryData(cmdbResp, cmdbStatusCode, ctx, q, *infClient, req.Headers, req.PluginContext)
+			res := QueryData(cmdbResp, cmdbStatusCode, ctx, q, *client.client, req.Headers, req.PluginContext)
 			response.Responses[q.RefID] = res
 		}
-		//modifications for cloudwatch datasource
-		//res := QueryData(ctx, q, *client.client, req.Headers, req.PluginContext)
-		//response.Responses[q.RefID] = res
+
 	}
 	return response, nil
 }

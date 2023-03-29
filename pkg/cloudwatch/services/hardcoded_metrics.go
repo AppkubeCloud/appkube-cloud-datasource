@@ -2,9 +2,8 @@ package services
 
 import (
 	"fmt"
-
-	"github.com/appkube/cloud-datasource/pkg/tsdb/cloudwatch/constants"
-	"github.com/appkube/cloud-datasource/pkg/tsdb/cloudwatch/models/resources"
+	"github.com/appkube/cloud-datasource/pkg/cloudwatch/constants"
+	"github.com/appkube/cloud-datasource/pkg/cloudwatch/models/resources"
 )
 
 var GetHardCodedDimensionKeysByNamespace = func(namespace string) ([]resources.ResourceResponse[string], error) {

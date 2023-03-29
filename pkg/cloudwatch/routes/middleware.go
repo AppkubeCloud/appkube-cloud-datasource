@@ -1,18 +1,18 @@
 package routes
 
 import (
+	models2 "github.com/appkube/cloud-datasource/pkg/cloudwatch/models"
 	"net/http"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
 
 	"github.com/appkube/cloud-datasource/pkg/infra/log"
-	"github.com/appkube/cloud-datasource/pkg/tsdb/cloudwatch/models"
 )
 
-func ResourceRequestMiddleware(handleFunc models.RouteHandlerFunc, logger log.Logger, reqCtxFactory models.RequestContextFactoryFunc) func(rw http.ResponseWriter, req *http.Request) {
+func ResourceRequestMiddleware(handleFunc models2.RouteHandlerFunc, logger log.Logger, reqCtxFactory models2.RequestContextFactoryFunc) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		if req.Method != "GET" {
-			respondWithError(rw, models.NewHttpError("Invalid method", http.StatusMethodNotAllowed, nil))
+			respondWithError(rw, models2.NewHttpError("Invalid method", http.StatusMethodNotAllowed, nil))
 			return
 		}
 
@@ -29,7 +29,7 @@ func ResourceRequestMiddleware(handleFunc models.RouteHandlerFunc, logger log.Lo
 		_, err := rw.Write(json)
 		if err != nil {
 			logger.Error("error handling resource request", "error", err)
-			respondWithError(rw, models.NewHttpError("error writing response in resource request middleware", http.StatusInternalServerError, err))
+			respondWithError(rw, models2.NewHttpError("error writing response in resource request middleware", http.StatusInternalServerError, err))
 		}
 	}
 }

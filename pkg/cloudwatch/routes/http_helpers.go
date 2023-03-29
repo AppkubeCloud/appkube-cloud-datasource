@@ -2,9 +2,8 @@ package routes
 
 import (
 	"encoding/json"
+	"github.com/appkube/cloud-datasource/pkg/cloudwatch/models"
 	"net/http"
-
-	"github.com/appkube/cloud-datasource/pkg/tsdb/cloudwatch/models"
 )
 
 func respondWithError(rw http.ResponseWriter, httpError *models.HttpError) {

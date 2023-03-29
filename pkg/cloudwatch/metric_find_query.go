@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/appkube/cloud-datasource/pkg/cloudwatch/constants"
 	"net/url"
 	"reflect"
 	"sort"
@@ -12,7 +13,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/appkube/cloud-datasource/pkg/tsdb/cloudwatch/constants"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go/service/ec2"

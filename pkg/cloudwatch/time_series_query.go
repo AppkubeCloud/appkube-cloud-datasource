@@ -3,12 +3,11 @@ package cloudwatch
 import (
 	"context"
 	"fmt"
+	"github.com/appkube/cloud-datasource/pkg/cloudwatch/models"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/appkube/cloud-datasource/pkg/infra/log"
-	//"github.com/appkube/cloud-datasource/pkg/services/featuremgmt"
-	"github.com/appkube/cloud-datasource/pkg/tsdb/cloudwatch/models"
 )
 
 type responseWrapper struct {

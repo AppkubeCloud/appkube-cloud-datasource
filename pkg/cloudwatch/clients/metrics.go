@@ -1,8 +1,8 @@
 package clients
 
 import (
-	"github.com/appkube/cloud-datasource/pkg/tsdb/cloudwatch/models"
-	"github.com/appkube/cloud-datasource/pkg/tsdb/cloudwatch/models/resources"
+	"github.com/appkube/cloud-datasource/pkg/cloudwatch/models"
+	"github.com/appkube/cloud-datasource/pkg/cloudwatch/models/resources"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 )
