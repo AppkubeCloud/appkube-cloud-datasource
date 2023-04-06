@@ -1,10 +1,13 @@
 import React from 'react';
-import { InlineField, Select, HorizontalGroup, RadioButtonGroup } from '@grafana/ui';
+import { InlineField, Select, RadioButtonGroup } from '@grafana/ui';
 // import { QueryEditorProps } from '@grafana/data';
 // import { DataSource } from '../datasource';
 // import { MyDataSourceOptions, MyQuery } from '../types';
 import { SOURCE_TYPE, SOURCE_VALUE, METRIC_TYPE, METRIC_EDITOR_MODES, MetricEditorMode } from '../common-ds';
 import { Metric } from './EditorComponents/Metric';
+import { Log } from './EditorComponents/Log';
+import { Trace } from './EditorComponents/Trace';
+import { Api } from './EditorComponents/Api';
 
 
 export function QueryEditor({ query, onChange, onRunQuery }: any) {
@@ -21,10 +24,22 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
     onChange({ ...query, metricData: value });
   };
 
+  const onChangeLogData = (value: any) => {
+    onChange({ ...query, logData: value });
+  };
+
+  const onChangeTraceData = (value: any) => {
+    onChange({ ...query, traceData: value });
+  };
+
+  const onChangeAPIData = (value: any) => {
+    onChange({ ...query, apiData: value });
+  };
+
   const onEditorModeChange = (newMetricEditorMode: any) => {
     onChange({ ...query, metricEditorMode: newMetricEditorMode });
   };
-  const { sourceType, metricType, metricData, metricEditorMode } = query;
+  const { sourceType, metricType, metricData, metricEditorMode, logData, traceData, apiData } = query;
   const defaultMetricMode = metricEditorMode ? metricEditorMode : MetricEditorMode.Builder;
   return (
     <div>
@@ -48,6 +63,18 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
         {
           sourceType === SOURCE_VALUE.METRIC ?
             <Metric query={metricData ? metricData : {}} onChange={onChangeMetricData} editorMode={defaultMetricMode} /> : <></>
+        }
+        {
+          sourceType === SOURCE_VALUE.LOG ?
+            <Log query={logData ? logData : {}} onChange={onChangeLogData} /> : <></>
+        }
+        {
+          sourceType === SOURCE_VALUE.TRACE ?
+            <Trace query={traceData ? traceData : {}} onChange={onChangeTraceData} /> : <></>
+        }
+        {
+          sourceType === SOURCE_VALUE.API ?
+            <Api query={apiData ? apiData : {}} onChange={onChangeAPIData} /> : <></>
         }
       </div>
     </div>
