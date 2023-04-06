@@ -56,7 +56,7 @@ export function ConfigEditor(props: Props) {
         <SecretInput
           isConfigured={(secureJsonFields && secureJsonFields.apiKey) as boolean}
           value={secureJsonData.apiKey || ''}
-          placeholder="secure json field (backend only)"
+          placeholder="Test"
           width={40}
           onReset={onResetAPIKey}
           onChange={onAPIKeyChange}

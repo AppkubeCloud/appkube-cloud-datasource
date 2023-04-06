@@ -1,32 +1,55 @@
-import React, { ChangeEvent } from 'react';
-import { InlineField, Input } from '@grafana/ui';
-import { QueryEditorProps } from '@grafana/data';
-import { DataSource } from '../datasource';
-import { MyDataSourceOptions, MyQuery } from '../types';
+import React from 'react';
+import { InlineField, Select, HorizontalGroup, RadioButtonGroup } from '@grafana/ui';
+// import { QueryEditorProps } from '@grafana/data';
+// import { DataSource } from '../datasource';
+// import { MyDataSourceOptions, MyQuery } from '../types';
+import { SOURCE_TYPE, SOURCE_VALUE, METRIC_TYPE, METRIC_EDITOR_MODES, MetricEditorMode } from '../common-ds';
+import { Metric } from './EditorComponents/Metric';
 
-type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
-export function QueryEditor({ query, onChange, onRunQuery }: Props) {
-  const onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
-    onChange({ ...query, queryText: event.target.value });
+export function QueryEditor({ query, onChange, onRunQuery }: any) {
+
+  const onSourceTypeChange = (value: any) => {
+    onChange({ ...query, sourceType: value });
   };
 
-  const onConstantChange = (event: ChangeEvent<HTMLInputElement>) => {
-    onChange({ ...query, constant: parseFloat(event.target.value) });
-    // executes the query
-    onRunQuery();
+  const onMetricTypeChange = (value: any) => {
+    onChange({ ...query, metricType: value });
   };
 
-  const { queryText, constant } = query;
+  const onChangeMetricData = (value: any) => {
+    onChange({ ...query, metricData: value });
+  };
 
+  const onEditorModeChange = (newMetricEditorMode: any) => {
+    onChange({ ...query, metricEditorMode: newMetricEditorMode });
+  };
+  const { sourceType, metricType, metricData, metricEditorMode } = query;
+  const defaultMetricMode = metricEditorMode ? metricEditorMode : MetricEditorMode.Builder;
   return (
-    <div className="gf-form">
-      <InlineField label="Constant">
-        <Input onChange={onConstantChange} value={constant} width={8} type="number" step="0.1" />
-      </InlineField>
-      <InlineField label="Query Text" labelWidth={16} tooltip="Not used yet">
-        <Input onChange={onQueryTextChange} value={queryText || ''} />
-      </InlineField>
+    <div>
+      <div style={{display: "flex", alignItems: "center"}}>
+        <InlineField label="Source Type">
+          <Select className="min-width-12 width-12" value={sourceType} options={SOURCE_TYPE} onChange={(e) => onSourceTypeChange(e.value)} menuShouldPortal={true} />
+        </InlineField>
+        {
+          sourceType === SOURCE_VALUE.METRIC ?
+            <>
+              <InlineField label="Source Type">
+                <Select className="min-width-12 width-12" value={metricType} options={METRIC_TYPE} onChange={(e) => onMetricTypeChange(e.value)} menuShouldPortal={true} />
+              </InlineField>
+              <div style={{ display: "block", flexGrow: "1" }} />
+              <RadioButtonGroup options={METRIC_EDITOR_MODES} size="sm" value={defaultMetricMode} onChange={onEditorModeChange} />
+            </>
+            : <></>
+        }
+      </div>
+      <div>
+        {
+          sourceType === SOURCE_VALUE.METRIC ?
+            <Metric query={metricData ? metricData : {}} onChange={onChangeMetricData} editorMode={defaultMetricMode} /> : <></>
+        }
+      </div>
     </div>
   );
 }
