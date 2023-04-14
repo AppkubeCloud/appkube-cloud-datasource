@@ -2,10 +2,10 @@ import React from 'react';
 import { Select, InlineField, Input } from '@grafana/ui';
 import { EditorRow, EditorRows } from '../../extended/EditorRow';
 import { EditorField } from '../../extended/EditorField';
-import { DUMMY_PRODUCTS, DUMMY_ENVS, DUMMY_MODULES, DUMMY_SERVICES } from '../../common-ds';
+// import { DUMMY_PRODUCTS, DUMMY_ENVS, DUMMY_MODULES, DUMMY_SERVICES } from '../../common-ds';
 
 
-export function Trace({ query, onChange }: any) {
+export function Trace({ query, onChange, apiData }: any) {
     const { product, env, module, service, elementType, instanceID, traceQuery, traceLocation } = query;
 
     const onChangeProduct = (value: any) => {
@@ -40,20 +40,113 @@ export function Trace({ query, onChange }: any) {
         onChange({ ...query, traceQuery: e.target.value });
     };
 
+    const getAllProducts = () => {
+        let prodArray: any[] = [];
+        apiData.map((item: any) => {
+            prodArray.push({ "label": item.name, "value": item.name });
+        })
+        console.log(apiData);
+        return prodArray;
+    }
+
+    const getAllEnvironments = () => {
+        let envData: any[] = [];
+        let envList: any[] = [];
+        apiData.map((item: any) => {
+            if (item.name === product) {
+                envData = item.deploymentEnvironments;
+            }
+        })
+        envData.map((item: any) => {
+            envList.push({ "label": item.name, "value": item.name });
+        })
+        return envData;
+    }
+
+    const getAllModules = () => {
+        let moduleData: any[] = [];
+        let envData: any[] = [];
+        let moduleList: any[] = [];
+        apiData.map((item: any) => {
+            if (item.name === product) {
+                envData = item.deploymentEnvironments;
+            }
+        })
+        envData.map((item: any) => {
+            moduleData = item.modules;
+        })
+        moduleData.map((item: any) => {
+            moduleList.push({ "label": item.name, "value": item.name });
+        })
+        return moduleList;
+    }
+
+    const getAllServices = () => {
+        let moduleData: any[] = [];
+        let envData: any[] = [];
+        let appServices: any[] = [];
+        let dataServices: any[] = [];
+        let servicesList: any[] = [];
+        apiData.map((item: any) => {
+            if (item.name === product) {
+                envData = item.deploymentEnvironments;
+            }
+        })
+        envData.map((item: any) => {
+            moduleData = item.modules;
+        })
+        moduleData.map((item: any) => {
+            appServices = item.appServices;
+            dataServices = item.dataServices;
+        })
+        appServices.map((item) => {
+            servicesList.push({ "label": item.name, "value": item.name });
+        })
+        dataServices.map((item) => {
+            servicesList.push({ "label": item.name, "value": item.name });
+        })
+
+        return servicesList;
+    }
+
     return (
         <EditorRows>
             <EditorRow label="">
                 <EditorField label='Product'>
-                    <Select className="min-width-12 width-12" value={product} options={DUMMY_PRODUCTS} onChange={(e) => onChangeProduct(e.value)} menuShouldPortal={true} />
+                    <Select
+                        className="min-width-12 width-12"
+                        value={product}
+                        options={(apiData.length ? getAllProducts() : undefined)}
+                        onChange={(e) => onChangeProduct(e.value)}
+                        menuShouldPortal={true}
+                    />
                 </EditorField>
                 <EditorField label='Environment'>
-                    <Select className="min-width-12 width-12" value={env} options={DUMMY_ENVS} onChange={(e) => onChangeEnv(e.value)} menuShouldPortal={true} />
+                    <Select
+                        className="min-width-12 width-12"
+                        value={env}
+                        options={(apiData.length ? getAllEnvironments() : undefined)}
+                        onChange={(e) => onChangeEnv(e.value)}
+                        menuShouldPortal={true}
+                    />
                 </EditorField>
                 <EditorField label='Module'>
-                    <Select className="min-width-12 width-12" value={module} options={DUMMY_MODULES} onChange={(e) => onChangeModule(e.value)} menuShouldPortal={true} />
+                    <Select
+                        className="min-width-12 width-12"
+                        value={module}
+                        options={(apiData.length ? getAllModules() : undefined)}
+                        onChange={(e) => onChangeModule(e.value)}
+                        menuShouldPortal={true}
+                    />
                 </EditorField>
                 <EditorField label='App/Data Service'>
-                    <Select className="min-width-12 width-12" value={service} options={DUMMY_SERVICES} onChange={(e) => onChangeService(e.value)} menuShouldPortal={true} />
+                    <Select
+                        className="min-width-12 width-12"
+                        value={service}
+                        options={(apiData.length ? getAllServices() : undefined)}
+                        onChange={(e) => onChangeService(e.value)}
+                        menuShouldPortal={true}
+                    />
                 </EditorField>
             </EditorRow>
             <EditorRow label="">
