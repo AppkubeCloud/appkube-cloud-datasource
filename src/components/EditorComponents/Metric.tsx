@@ -48,7 +48,6 @@ export function Metric({ query, onChange, editorMode, apiData }: any) {
     apiData.map((item: any) => {
       prodArray.push({ "label": item.name, "value": item.name });
     })
-    console.log(apiData);
     return prodArray;
   }
 
@@ -63,7 +62,7 @@ export function Metric({ query, onChange, editorMode, apiData }: any) {
     envData.map((item: any) => {
       envList.push({ "label": item.name, "value": item.name });
     })
-    return envData;
+    return envList;
   }
 
   const getAllModules = () => {

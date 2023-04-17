@@ -45,7 +45,6 @@ export function Trace({ query, onChange, apiData }: any) {
         apiData.map((item: any) => {
             prodArray.push({ "label": item.name, "value": item.name });
         })
-        console.log(apiData);
         return prodArray;
     }
 
@@ -60,8 +59,9 @@ export function Trace({ query, onChange, apiData }: any) {
         envData.map((item: any) => {
             envList.push({ "label": item.name, "value": item.name });
         })
-        return envData;
+        return envList;
     }
+
 
     const getAllModules = () => {
         let moduleData: any[] = [];
