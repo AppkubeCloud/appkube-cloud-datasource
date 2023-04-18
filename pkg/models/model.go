@@ -75,10 +75,12 @@ type Query struct {
 	Spreadsheet         string                   `json:"spreadsheet,omitempty"`
 	SheetName           string                   `json:"sheetName,omitempty"`
 	SheetRange          string                   `json:"range,omitempty"`
-	Product             string                   `json:"product,omitempty"`
-	Environment         string                   `json:"environment,omitempty"`
-	Module              string                   `json:"module,omitempty"`
+	ProductId           int64                    `json:"productId,omitempty"`
+	EnvironmentId       int64                    `json:"environmentId,omitempty"`
+	ModuleId            int64                    `json:"moduleId,omitempty"`
+	ServiceId           int64                    `json:"serviceId"`
 	ServiceType         string                   `json:"serviceType,omitempty"`
+	ServiceNature       string                   `json:"serviceNature,omitempty"`
 	AwsxUrl             string                   `json:"awsxUrl,omitempty"`
 	CmdbUrl             string                   `json:"cmdbUrl,omitempty"`
 	VaultUrl            string                   `json:"vaultUrl,omitempty"`

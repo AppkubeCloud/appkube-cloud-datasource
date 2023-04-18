@@ -41,7 +41,7 @@ func main() {
 func testCloudwatchMetrics() {
 	fmt.Println("Calling cloudwatch metrics")
 	vaultUrl := "http://localhost:5057/api/vault/accountId"
-	cmdbUrl := "http://localhost:5057/api/service-detail/search-with-filter"
+	cmdbUrl := "http://localhost:5057/api/department-product-env/search"
 	//awsxApiUrl := "http://localhost:7000/awsx/appconfig?accountId="
 	accountId := "657907747545"
 	//host := pluginhost.PluginHost{}

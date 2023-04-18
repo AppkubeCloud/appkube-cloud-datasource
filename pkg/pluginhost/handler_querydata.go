@@ -196,18 +196,18 @@ func QueryData(cmdbResp any, cmdbStatusCode int, ctx context.Context, backendQue
 }
 
 func getCmdbData(ctx context.Context, infClient infinity.Client, query models.Query, requestHeaders map[string]string) (o any, statusCode int, duration time.Duration, err error) {
-	fmt.Println("Getting CMDB data")
-	//product := query.Product
-	environment := query.Environment
-	//module := query.Module
-	//serviceType := query.ServiceType
-	accountId := query.AccountId
-	query.URL = query.CmdbUrl + "?" + fmt.Sprintf("associatedEnv=%s&associatedCommonService=FileRepo&associatedLandingZone=%s", environment, accountId)
+	fmt.Println("Query CMDB to get landing zone")
+	productId := query.ProductId
+	environmentId := query.EnvironmentId
+	moduleId := query.ModuleId
+	serviceId := query.ServiceId
+	//accountId := query.AccountId
+	query.URL = query.CmdbUrl + "?" + fmt.Sprintf("productId=%d&deploymentEnvironmentId=%d&moduleId=%d&servicesId=%d", productId, environmentId, moduleId, serviceId)
 	return infClient.GetResults(ctx, query, requestHeaders)
 
 }
 func getAwsCredentials(ctx context.Context, infClient infinity.Client, query models.Query, requestHeaders map[string]string) (o any, statusCode int, duration time.Duration, err error) {
-	fmt.Println("Getting Aws credentials")
+	fmt.Println("Query vault to get aws credentials")
 	query.URL = query.VaultUrl + "/" + query.AccountId
 	return infClient.GetResults(ctx, query, requestHeaders)
 }
