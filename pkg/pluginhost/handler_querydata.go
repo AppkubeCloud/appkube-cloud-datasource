@@ -34,11 +34,14 @@ func (ds *PluginHost) QueryData(ctx context.Context, req *backend.QueryDataReque
 			return response, fmt.Errorf("error un-marshaling the query. %w", err)
 		}
 		cmdbResp, cmdbStatusCode, _, err := getCmdbData(ctx, *client.client, query, req.Headers)
+		//cmdbResp, cmdbStatusCode, _, err := getCmdbData(ctx, *infClient, query, req.Headers)
 		if err != nil {
 			backend.Logger.Error("error in getting cmdb response", "error", err.Error())
 			return response, fmt.Errorf("error in getting cmdb response. %w", err)
 		}
+		query.AccountId = cmdbResp[0].LandingZone
 		vaultResp, vaultStatusCode, _, err := getAwsCredentials(ctx, *client.client, query, req.Headers)
+		//vaultResp, vaultStatusCode, _, err := getAwsCredentials(ctx, *infClient, query, req.Headers)
 		if err != nil {
 			backend.Logger.Error("error in getting aws credentials", "error", err.Error())
 			return response, fmt.Errorf("error in getting aws credentials. %w", err)
@@ -71,6 +74,7 @@ func (ds *PluginHost) QueryData(ctx context.Context, req *backend.QueryDataReque
 			response = res
 		default:
 			res := QueryData(cmdbResp, cmdbStatusCode, ctx, q, *client.client, req.Headers, req.PluginContext)
+			//res := QueryData(cmdbResp, cmdbStatusCode, ctx, q, *infClient, req.Headers, req.PluginContext)
 			response.Responses[q.RefID] = res
 		}
 
@@ -90,31 +94,7 @@ func QueryData(cmdbResp any, cmdbStatusCode int, ctx context.Context, backendQue
 	//region Frame Builder
 	switch query.Type {
 	case models.QueryTypeAppKubeAPI:
-
-		//resp, statusCode, _, err := getCmdbData(ctx, infClient, query, requestHeaders)
-
-		//if err != nil {
-		//	//fmt.Println("Error in getting cmdb response: ", err.Error())
-		//	backend.Logger.Error("Error in getting cmdb response", "error", err.Error())
-		//	response.Error = fmt.Errorf("error in getting cmdb response. %w", err)
-		//	return response
-		//}
-		//fmt.Println("CMDB response: ", resp)
-		//if statusCode/100 == 2 {
 		if cmdbStatusCode/100 == 2 {
-
-			//defer func() {
-			//	_ = resp.Body.Close()
-			//}()
-			//cmdbData, err := io.ReadAll(resp.Body)
-			//if err != nil {
-			//	//fmt.Println("Error in reading cmdb response: ", err.Error())
-			//	backend.Logger.Error("Error in reading cmdb response", "error", err.Error())
-			//	response.Error = fmt.Errorf("error in reading cmdb response. %w", err)
-			//	return response
-			//}
-			//fmt.Println(string(cmdbData))
-
 			query.URL = fmt.Sprintf(query.AwsxUrl + query.AccountId)
 			query.Type = "json"
 			query.Parser = "backend"
@@ -130,7 +110,6 @@ func QueryData(cmdbResp any, cmdbStatusCode int, ctx context.Context, backendQue
 			}
 
 		}
-
 	case models.QueryTypeGSheets:
 		sheetId := query.Spreadsheet
 		sheetName := query.SheetName
@@ -195,16 +174,29 @@ func QueryData(cmdbResp any, cmdbStatusCode int, ctx context.Context, backendQue
 	return response
 }
 
-func getCmdbData(ctx context.Context, infClient infinity.Client, query models.Query, requestHeaders map[string]string) (o any, statusCode int, duration time.Duration, err error) {
+func getCmdbData(ctx context.Context, infClient infinity.Client, query models.Query, requestHeaders map[string]string) (o []models.CmdbProductEnvModuleService, statusCode int, duration time.Duration, err error) {
 	fmt.Println("Query CMDB to get landing zone")
 	productId := query.ProductId
 	environmentId := query.EnvironmentId
 	moduleId := query.ModuleId
 	serviceId := query.ServiceId
 	//accountId := query.AccountId
-	query.URL = query.CmdbUrl + "?" + fmt.Sprintf("productId=%d&deploymentEnvironmentId=%d&moduleId=%d&servicesId=%d", productId, environmentId, moduleId, serviceId)
-	return infClient.GetResults(ctx, query, requestHeaders)
-
+	sOpt := fmt.Sprintf("productId=%d&deploymentEnvironmentId=%d&moduleId=%d&servicesId=%d", productId, environmentId, moduleId, serviceId)
+	fmt.Println("Filter options: " + sOpt)
+	query.URL = query.CmdbUrl + "?" + sOpt
+	cmdbResp, cmdbStatusCode, duration, err := infClient.GetResults(ctx, query, requestHeaders)
+	if err != nil {
+		backend.Logger.Error("error in getting cmdb response", "error", err.Error())
+		return nil, cmdbStatusCode, duration, err
+	}
+	cmdbByte := []byte(cmdbResp.(string))
+	var out []models.CmdbProductEnvModuleService
+	er := json.Unmarshal(cmdbByte, &out)
+	if er != nil {
+		backend.Logger.Error("error in parsing cmdb response", "error", er.Error())
+		return nil, cmdbStatusCode, duration, er
+	}
+	return out, cmdbStatusCode, duration, err
 }
 func getAwsCredentials(ctx context.Context, infClient infinity.Client, query models.Query, requestHeaders map[string]string) (o any, statusCode int, duration time.Duration, err error) {
 	fmt.Println("Query vault to get aws credentials")

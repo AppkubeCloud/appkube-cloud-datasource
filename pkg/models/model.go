@@ -18,6 +18,17 @@ type AwsCredential struct {
 	ExternalId          string `json:"externalId,omitempty"`
 }
 
+type CmdbProductEnvModuleService struct {
+	Id                      int64  `json:"id"`
+	LandingZone             string `json:"landingZone,omitempty"`
+	departmentId            int64  `json:"departmentId"`
+	deploymentEnvironmentId int64  `json:"deploymentEnvironmentId"`
+	moduleId                int64  `json:"moduleId"`
+	servicesId              int64  `json:"servicesId"`
+	serviceType             string `json:"serviceType,omitempty"`
+	serviceNature           string `json:"serviceNature,omitempty"`
+}
+
 type QueryType string
 
 const (
