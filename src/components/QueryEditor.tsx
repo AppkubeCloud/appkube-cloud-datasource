@@ -26,10 +26,37 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
         .then(response => response.json())
         .then(res => setFetchedData(res))
         .catch(error => console.log(error));
-    })()
-  }, [])
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!query.JSON) {
+      query.JSON = {
+        queryType: "",
+        source: "",
+        productId: null,
+        environmentId: null,
+        moduleId: null,
+        serviceId: null,
+        serviceType: "java app service",
+        cmdbUrl: "http://localhost:5057/api/department-product-env/search",
+        vaultUrl: "http://localhost:5057/api/vault/accountId",
+        Namespace: "AWS/EC2",
+        MetricName: "CPUUtilization",
+        Statistic: "Average",
+        MatchExact: true,
+        accountId: "%s"
+      };
+      onChange(query);
+    }
+  }, [query]);
 
   const onSourceTypeChange = (value: any) => {
+    if (value === 'metric') {
+      query.JSON.queryType = 'timeSeriesQuery';
+    } else if (value === 'log') {
+      query.JSON.queryType = 'logAction';
+    }
     onChange({ ...query, sourceType: value });
   };
 
@@ -37,34 +64,20 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
     onChange({ ...query, metricType: value });
   };
 
-  const onChangeMetricData = (value: any) => {
-    onChange({ ...query, metricData: value });
-  };
-
-  const onChangeLogData = (value: any) => {
-    onChange({ ...query, logData: value });
-  };
-
-  const onChangeTraceData = (value: any) => {
-    onChange({ ...query, traceData: value });
-  };
-
-  const onChangeAPIData = (value: any) => {
-    onChange({ ...query, apiData: value });
-  };
-
   const onEditorModeChange = (newMetricEditorMode: any) => {
     onChange({ ...query, metricEditorMode: newMetricEditorMode });
+  };
+
+  const onChangeData = (value: any) => {
+    console.log(value);
+    onChange({ ...query, JSON: value });
   };
 
   const {
     sourceType,
     metricType,
-    metricData,
     metricEditorMode,
-    logData,
-    traceData,
-    apiData
+    JSON
   } = query;
 
   const defaultMetricMode = metricEditorMode ? metricEditorMode : MetricEditorMode.Builder;
@@ -109,8 +122,8 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
         {
           sourceType === SOURCE_VALUE.METRIC ?
             <Metric
-              query={metricData ? metricData : {}}
-              onChange={onChangeMetricData}
+              query={JSON ? JSON : {}}
+              onChange={onChangeData}
               editorMode={defaultMetricMode}
               apiData={fetchedData}
             />
@@ -120,8 +133,8 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
         {
           sourceType === SOURCE_VALUE.LOG ?
             <Log
-              query={logData ? logData : {}}
-              onChange={onChangeLogData}
+              query={JSON ? JSON : {}}
+              onChange={onChangeData}
               apiData={fetchedData}
             />
             :
@@ -130,8 +143,8 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
         {
           sourceType === SOURCE_VALUE.TRACE ?
             <Trace
-              query={traceData ? traceData : {}}
-              onChange={onChangeTraceData}
+              query={JSON ? JSON : {}}
+              onChange={onChangeData}
               apiData={fetchedData}
             />
             :
@@ -140,8 +153,8 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
         {
           sourceType === SOURCE_VALUE.API ?
             <Api
-              query={apiData ? apiData : {}}
-              onChange={onChangeAPIData}
+              query={JSON ? JSON : {}}
+              onChange={onChangeData}
               apiData={fetchedData}
             />
             :

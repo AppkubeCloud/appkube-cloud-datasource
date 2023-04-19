@@ -6,22 +6,22 @@ import { EditorField } from '../../extended/EditorField';
 
 
 export function Log({ query, onChange, apiData }: any) {
-  const { product, env, module, service, elementType, instanceID, logQuery, logGroup } = query;
+  const { productId, environmentId, moduleId, serviceId, elementType, instanceID, logQuery, logGroup } = query;
 
-  const onChangeProduct = (value: any) => {
-    onChange({ ...query, product: value });
+  const onChangeProduct = (e: any) => {
+    onChange({ ...query, productId: e.id });
   };
 
-  const onChangeEnv = (value: any) => {
-    onChange({ ...query, env: value });
+  const onChangeEnv = (e: any) => {
+    onChange({ ...query, environmentId: e.id });
   };
 
-  const onChangeModule = (value: any) => {
-    onChange({ ...query, module: value });
+  const onChangeModule = (e: any) => {
+    onChange({ ...query, moduleId: e.id });
   };
 
-  const onChangeService = (value: any) => {
-    onChange({ ...query, service: value });
+  const onChangeService = (e: any) => {
+    onChange({ ...query, serviceId: e.id });
   };
 
   const onChangeElementType = (e: any) => {
@@ -43,7 +43,7 @@ export function Log({ query, onChange, apiData }: any) {
   const getAllProducts = () => {
     let prodArray: any[] = [];
     apiData.map((item: any) => {
-      prodArray.push({ "label": item.name, "value": item.name });
+      prodArray.push({ "id": item.id, "label": item.name, "value": item.name });
     })
     return prodArray;
   }
@@ -52,12 +52,12 @@ export function Log({ query, onChange, apiData }: any) {
     let envData: any[] = [];
     let envList: any[] = [];
     apiData.map((item: any) => {
-      if (item.name === product) {
+      if (item.id === productId) {
         envData = item.deploymentEnvironments;
       }
     })
     envData.map((item: any) => {
-      envList.push({ "label": item.name, "value": item.name });
+      envList.push({ "id": item.id, "label": item.name, "value": item.name });
     })
     return envList;
   }
@@ -67,7 +67,7 @@ export function Log({ query, onChange, apiData }: any) {
     let envData: any[] = [];
     let moduleList: any[] = [];
     apiData.map((item: any) => {
-      if (item.name === product) {
+      if (item.id === productId) {
         envData = item.deploymentEnvironments;
       }
     })
@@ -75,7 +75,7 @@ export function Log({ query, onChange, apiData }: any) {
       moduleData = item.modules;
     })
     moduleData.map((item: any) => {
-      moduleList.push({ "label": item.name, "value": item.name });
+      moduleList.push({ "id": item.id, "label": item.name, "value": item.name });
     })
     return moduleList;
   }
@@ -87,7 +87,7 @@ export function Log({ query, onChange, apiData }: any) {
     let dataServices: any[] = [];
     let servicesList: any[] = [];
     apiData.map((item: any) => {
-      if (item.name === product) {
+      if (item.id === productId) {
         envData = item.deploymentEnvironments;
       }
     })
@@ -99,10 +99,10 @@ export function Log({ query, onChange, apiData }: any) {
       dataServices = item.dataServices;
     })
     appServices.map((item) => {
-      servicesList.push({ "label": item.name, "value": item.name });
+      servicesList.push({ "id": item.id, "label": item.name, "value": item.name });
     })
     dataServices.map((item) => {
-      servicesList.push({ "label": item.name, "value": item.name });
+      servicesList.push({ "id": item.id, "label": item.name, "value": item.name });
     })
 
     return servicesList;
@@ -114,36 +114,36 @@ export function Log({ query, onChange, apiData }: any) {
         <EditorField label='Product'>
           <Select
             className="min-width-12 width-12"
-            value={product}
+            value={productId}
             options={(apiData.length ? getAllProducts() : undefined)}
-            onChange={(e) => onChangeProduct(e.value)}
+            onChange={(e) => onChangeProduct(e)}
             menuShouldPortal={true}
           />
         </EditorField>
         <EditorField label='Environment'>
           <Select
             className="min-width-12 width-12"
-            value={env}
+            value={environmentId}
             options={(apiData.length ? getAllEnvironments() : undefined)}
-            onChange={(e) => onChangeEnv(e.value)}
+            onChange={(e) => onChangeEnv(e)}
             menuShouldPortal={true}
           />
         </EditorField>
         <EditorField label='Module'>
           <Select
             className="min-width-12 width-12"
-            value={module}
+            value={moduleId}
             options={(apiData.length ? getAllModules() : undefined)}
-            onChange={(e) => onChangeModule(e.value)}
+            onChange={(e) => onChangeModule(e)}
             menuShouldPortal={true}
           />
         </EditorField>
         <EditorField label='App/Data Service'>
           <Select
             className="min-width-12 width-12"
-            value={service}
+            value={serviceId}
             options={(apiData.length ? getAllServices() : undefined)}
-            onChange={(e) => onChangeService(e.value)}
+            onChange={(e) => onChangeService(e)}
             menuShouldPortal={true} />
         </EditorField>
       </EditorRow>
