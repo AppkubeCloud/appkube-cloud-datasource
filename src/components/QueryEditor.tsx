@@ -15,7 +15,6 @@ import { Log } from './EditorComponents/Log';
 import { Trace } from './EditorComponents/Trace';
 import { Api } from './EditorComponents/Api';
 
-
 export function QueryEditor({ query, onChange, onRunQuery }: any) {
 
   const [fetchedData, setFetchedData] = useState([]);
@@ -69,7 +68,6 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
   };
 
   const onChangeData = (value: any) => {
-    console.log(value);
     onChange({ ...query, JSON: value });
   };
 

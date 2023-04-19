@@ -42,7 +42,7 @@ export function Trace({ query, onChange, apiData }: any) {
   const getAllProducts = () => {
     let prodArray: any[] = [];
     apiData.map((item: any) => {
-      prodArray.push({ "id": item.id, "label": item.name, "value": item.name });
+      prodArray.push({ "id": item.id, "label": item.name, "value": item.id });
     })
     return prodArray;
   }
@@ -56,7 +56,7 @@ export function Trace({ query, onChange, apiData }: any) {
       }
     })
     envData.map((item: any) => {
-      envList.push({ "id": item.id, "label": item.name, "value": item.name });
+      envList.push({ "id": item.id, "label": item.name, "value": item.id });
     })
     return envList;
   }
@@ -74,7 +74,7 @@ export function Trace({ query, onChange, apiData }: any) {
       moduleData = item.modules;
     })
     moduleData.map((item: any) => {
-      moduleList.push({ "id": item.id, "label": item.name, "value": item.name });
+      moduleList.push({ "id": item.id, "label": item.name, "value": item.id });
     })
     return moduleList;
   }
@@ -98,10 +98,10 @@ export function Trace({ query, onChange, apiData }: any) {
       dataServices = item.dataServices;
     })
     appServices.map((item) => {
-      servicesList.push({ "id": item.id, "label": item.name, "value": item.name });
+      servicesList.push({ "id": item.id, "label": item.name, "value": item.id });
     })
     dataServices.map((item) => {
-      servicesList.push({ "id": item.id, "label": item.name, "value": item.name });
+      servicesList.push({ "id": item.id, "label": item.name, "value": item.id });
     })
 
     return servicesList;
@@ -115,7 +115,7 @@ export function Trace({ query, onChange, apiData }: any) {
             className="min-width-12 width-12"
             value={productId}
             options={(apiData.length ? getAllProducts() : undefined)}
-            onChange={(e) => onChangeProduct(e.value)}
+            onChange={(e) => onChangeProduct(e)}
             menuShouldPortal={true}
           />
         </EditorField>
@@ -124,7 +124,7 @@ export function Trace({ query, onChange, apiData }: any) {
             className="min-width-12 width-12"
             value={environmentId}
             options={(apiData.length ? getAllEnvironments() : undefined)}
-            onChange={(e) => onChangeEnv(e.value)}
+            onChange={(e) => onChangeEnv(e)}
             menuShouldPortal={true}
           />
         </EditorField>
@@ -133,7 +133,7 @@ export function Trace({ query, onChange, apiData }: any) {
             className="min-width-12 width-12"
             value={moduleId}
             options={(apiData.length ? getAllModules() : undefined)}
-            onChange={(e) => onChangeModule(e.value)}
+            onChange={(e) => onChangeModule(e)}
             menuShouldPortal={true}
           />
         </EditorField>
@@ -142,7 +142,7 @@ export function Trace({ query, onChange, apiData }: any) {
             className="min-width-12 width-12"
             value={serviceId}
             options={(apiData.length ? getAllServices() : undefined)}
-            onChange={(e) => onChangeService(e.value)}
+            onChange={(e) => onChangeService(e)}
             menuShouldPortal={true}
           />
         </EditorField>

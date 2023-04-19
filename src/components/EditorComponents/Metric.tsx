@@ -5,7 +5,7 @@ import { EditorField } from '../../extended/EditorField';
 import { DUMMY_METRIC_NAME, DUMMY_STASTISTIC, MetricEditorMode } from '../../common-ds';
 
 export function Metric({ query, onChange, editorMode, apiData }: any) {
-  const { productId, environmentId, moduleId, serviceId, elementType, instanceID, metricName, statistic, metricQuery } = query;
+  const { productId, environmentId, moduleId, serviceId, elementType, instanceID, MetricName, statistic, metricQuery } = query;
 
 
   const onChangeProduct = (e: any) => {
@@ -47,7 +47,7 @@ export function Metric({ query, onChange, editorMode, apiData }: any) {
   const getAllProducts = () => {
     let prodArray: any[] = [];
     apiData.map((item: any) => {
-      prodArray.push({ "id": item.id, "label": item.name, "value": item.name });
+      prodArray.push({ "id": item.id, "label": item.name, "value": item.id });
     })
     return prodArray;
   }
@@ -61,7 +61,7 @@ export function Metric({ query, onChange, editorMode, apiData }: any) {
       }
     })
     envData.map((item: any) => {
-      envList.push({ "id": item.id, "label": item.name, "value": item.name });
+      envList.push({ "id": item.id, "label": item.name, "value": item.id });
     })
     return envList;
   }
@@ -79,7 +79,7 @@ export function Metric({ query, onChange, editorMode, apiData }: any) {
       moduleData = item.modules;
     })
     moduleData.map((item: any) => {
-      moduleList.push({ "id": item.id, "label": item.name, "value": item.name });
+      moduleList.push({ "id": item.id, "label": item.name, "value": item.id });
     })
     return moduleList;
   }
@@ -103,10 +103,10 @@ export function Metric({ query, onChange, editorMode, apiData }: any) {
       dataServices = item.dataServices;
     })
     appServices.map((item) => {
-      servicesList.push({ "id": item.id, "label": item.name, "value": item.name });
+      servicesList.push({ "id": item.id, "label": item.name, "value": item.id });
     })
     dataServices.map((item) => {
-      servicesList.push({ "id": item.id, "label": item.name, "value": item.name });
+      servicesList.push({ "id": item.id, "label": item.name, "value": item.id });
     })
 
     return servicesList;
@@ -166,7 +166,7 @@ export function Metric({ query, onChange, editorMode, apiData }: any) {
             <InlineField label="Metric Name">
               <Select
                 className="min-width-12 width-12"
-                value={metricName}
+                value={MetricName}
                 options={DUMMY_METRIC_NAME}
                 onChange={(e) => onChangeMetricName(e.value)}
                 menuShouldPortal={true}

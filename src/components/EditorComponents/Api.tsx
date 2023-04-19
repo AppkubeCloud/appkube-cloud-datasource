@@ -103,7 +103,7 @@ export function Api({ query, onChange, apiData }: any) {
   const getAllProducts = () => {
     let prodArray: any[] = [];
     apiData.map((item: any) => {
-      prodArray.push({ "id": item.id, "label": item.name, "value": item.name });
+      prodArray.push({ "id": item.id, "label": item.name, "value": item.id });
     })
     return prodArray;
   }
@@ -117,7 +117,7 @@ export function Api({ query, onChange, apiData }: any) {
       }
     })
     envData.map((item: any) => {
-      envList.push({ "id": item.id, "label": item.name, "value": item.name });
+      envList.push({ "id": item.id, "label": item.name, "value": item.id });
     })
     return envList;
   }
@@ -135,7 +135,7 @@ export function Api({ query, onChange, apiData }: any) {
       moduleData = item.modules;
     })
     moduleData.map((item: any) => {
-      moduleList.push({ "id": item.id, "label": item.name, "value": item.name });
+      moduleList.push({ "id": item.id, "label": item.name, "value": item.id });
     })
     return moduleList;
   }
@@ -159,10 +159,10 @@ export function Api({ query, onChange, apiData }: any) {
       dataServices = item.dataServices;
     })
     appServices.map((item) => {
-      servicesList.push({ "id": item.id, "label": item.name, "value": item.name });
+      servicesList.push({ "id": item.id, "label": item.name, "value": item.id });
     })
     dataServices.map((item) => {
-      servicesList.push({ "id": item.id, "label": item.name, "value": item.name });
+      servicesList.push({ "id": item.id, "label": item.name, "value": item.id });
     })
 
     return servicesList;
