@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { InlineField, Select, RadioButtonGroup } from '@grafana/ui';
 // import { QueryEditorProps } from '@grafana/data';
 // import { DataSource } from '../datasource';
@@ -18,6 +18,7 @@ import { Api } from './EditorComponents/Api';
 export function QueryEditor({ query, onChange, onRunQuery }: any) {
 
   const [fetchedData, setFetchedData] = useState([]);
+  const onChanged = useRef(false);
 
   useEffect(() => {
     (async () => {
@@ -29,26 +30,30 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
   }, []);
 
   useEffect(() => {
-    if (!query.JSON) {
-      query.JSON = {
-        queryType: "",
-        source: "",
-        productId: null,
-        environmentId: null,
-        moduleId: null,
-        serviceId: null,
-        serviceType: "java app service",
-        cmdbUrl: "http://localhost:5057/api/department-product-env/search",
-        vaultUrl: "http://localhost:5057/api/vault/accountId",
-        Namespace: "AWS/EC2",
-        MetricName: "CPUUtilization",
-        Statistic: "Average",
-        MatchExact: true,
-        accountId: "%s"
-      };
-      onChange(query);
+    if (onChanged.current === false) {
+      if (!query.JSON) {
+        query.JSON = {
+          queryType: "",
+          source: "",
+          productId: null,
+          environmentId: null,
+          moduleId: null,
+          serviceId: null,
+          serviceType: "java app service",
+          cmdbUrl: "http://localhost:5057/api/department-product-env/search",
+          vaultUrl: "http://localhost:5057/api/vault/accountId",
+          Namespace: "AWS/EC2",
+          MetricName: "CPUUtilization",
+          Statistic: "Average",
+          MatchExact: true,
+          accountId: "%s"
+        };
+        onChange(query);
+        onChanged.current = true;
+      }
     }
-  }, [query]);
+
+  }, [query, onChange]);
 
   const onSourceTypeChange = (value: any) => {
     if (value === 'metric') {

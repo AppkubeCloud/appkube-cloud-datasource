@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Select, InlineField, Input, Button, Checkbox } from '@grafana/ui';
 import { EditorRow, EditorRows } from '../../extended/EditorRow';
 import { EditorField } from '../../extended/EditorField';
@@ -7,14 +7,20 @@ import { EditorField } from '../../extended/EditorField';
 
 export function Api({ query, onChange, apiData }: any) {
   const { productId, environmentId, moduleId, serviceId, elementType, instanceID, method, columns, isObjectInsteadOfArray, isDataInColumn, rowsRoots } = query;
+
   const [allColumns, setAllColumns] = React.useState<any>([]);
+  const fetchingComplete = useRef(false);
+
   React.useEffect(() => {
-    setAllColumns(columns ? columns : [{
-      selector: "",
-      as: "",
-      formatAs: "",
-    }]);
-  }, []);
+    if (fetchingComplete.current === false) {
+      setAllColumns(columns ? columns : [{
+        selector: "",
+        as: "",
+        formatAs: "",
+      }]);
+    }
+    fetchingComplete.current = true;
+  }, [columns]);
 
   const onChangeProduct = (e: any) => {
     onChange({ ...query, productId: e.id });
