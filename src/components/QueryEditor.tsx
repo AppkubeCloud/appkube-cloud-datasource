@@ -22,7 +22,7 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
 
   useEffect(() => {
     (async () => {
-      fetch('http://34.199.12.114:6057/api/products')
+      fetch('http://34.199.12.114:6067/api/products')
         .then(response => response.json())
         .then(res => setFetchedData(res))
         .catch(error => console.log(error));
