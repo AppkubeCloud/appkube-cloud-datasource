@@ -21,7 +21,7 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
 
   useEffect(() => {
     (async () => {
-      fetch('http://34.199.12.114:5057/api/products')
+      fetch('http://34.199.12.114:6057/api/products')
         .then(response => response.json())
         .then(res => setFetchedData(res))
         .catch(error => console.log(error));
@@ -38,13 +38,12 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
         moduleId: null,
         serviceId: null,
         serviceType: "java app service",
-        cmdbUrl: "http://localhost:5057/api/department-product-env/search",
-        vaultUrl: "http://localhost:5057/api/vault/accountId",
+        cmdbUrl: "http://34.199.12.114:5057/api/department-product-env/search",
+        vaultUrl: "http://34.199.12.114:5057/api/vault/accountId",
         Namespace: "AWS/EC2",
         MetricName: "CPUUtilization",
         Statistic: "Average",
-        MatchExact: true,
-        accountId: "%s"
+        MatchExact: true
       };
       onChange(query);
     }
