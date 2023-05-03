@@ -23,15 +23,15 @@ export function Api({ query, onChange, apiData }: any) {
   }, [columns]);
 
   const onChangeProduct = (e: any) => {
-    onChange({ ...query, productId: e.id });
+    onChange({ ...query, productId: e.id, environmentId: null, moduleId: null, serviceId: null });
   };
 
   const onChangeEnv = (e: any) => {
-    onChange({ ...query, environmentId: e.id });
+    onChange({ ...query, environmentId: e.id, moduleId: null, serviceId: null });
   };
 
   const onChangeModule = (e: any) => {
-    onChange({ ...query, moduleId: e.id });
+    onChange({ ...query, moduleId: e.id, serviceId: null });
   };
 
   const onChangeService = (e: any) => {
@@ -138,7 +138,9 @@ export function Api({ query, onChange, apiData }: any) {
       }
     })
     envData.map((item: any) => {
-      moduleData = item.modules;
+      if (item.id === environmentId) {
+        moduleData = item.modules;
+      }
     })
     moduleData.map((item: any) => {
       moduleList.push({ "id": item.id, "label": item.name, "value": item.id });
@@ -158,11 +160,15 @@ export function Api({ query, onChange, apiData }: any) {
       }
     })
     envData.map((item: any) => {
-      moduleData = item.modules;
+      if (item.id === environmentId) {
+        moduleData = item.modules;
+      }
     })
     moduleData.map((item: any) => {
-      appServices = item.appServices;
-      dataServices = item.dataServices;
+      if (item.id === moduleId) {
+        appServices = item.appServices;
+        dataServices = item.dataServices;
+      }
     })
     appServices.map((item) => {
       servicesList.push({ "id": item.id, "label": item.name, "value": item.id });
