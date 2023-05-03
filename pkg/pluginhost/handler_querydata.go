@@ -16,7 +16,7 @@ import (
 )
 
 // QueryData handles multiple queries and returns multiple responses.
-func (ds *PluginHost) QueryData(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
+func (ds PluginHost) QueryData(ctx context.Context, req backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
 	response := backend.NewQueryDataResponse()
 	client, err := getInstance(ds.im, req.PluginContext) // to be uncomment when local testing done
 
@@ -25,14 +25,17 @@ func (ds *PluginHost) QueryData(ctx context.Context, req *backend.QueryDataReque
 		backend.Logger.Error("error getting infinity instance", "error", err.Error())
 		return response, fmt.Errorf("error getting infinity instance. %w", err)
 	}
-
+	//backend.Logger.Info("COMPLETE REQUEST :::::::::: ", req)
 	for _, q := range req.Queries {
+		//backend.Logger.Info("Q only ------->>>>>>>> ", req)
 		//modifications for aws cloudwatch
 		query, err := models.LoadQueryToIdentifyType(q)
+
 		if err != nil {
 			backend.Logger.Error("error un-marshaling the query", "error", err.Error())
 			return response, fmt.Errorf("error un-marshaling the query. %w", err)
 		}
+		//backend.Logger.Info("QUERY>>>>>>>>>> : ", query)
 		cmdbResp, cmdbStatusCode, _, err := getCmdbData(ctx, *client.client, query, req.Headers)
 		//cmdbResp, cmdbStatusCode, _, err := getCmdbData(ctx, *infClient, query, req.Headers)
 		if err != nil {
@@ -182,11 +185,17 @@ func getCmdbData(ctx context.Context, infClient infinity.Client, query models.Qu
 	serviceId := query.ServiceId
 	//accountId := query.AccountId
 	sOpt := fmt.Sprintf("productId=%d&deploymentEnvironmentId=%d&moduleId=%d&servicesId=%d", productId, environmentId, moduleId, serviceId)
-	fmt.Println("Filter options: " + sOpt)
-	query.URL = query.CmdbUrl + "?" + sOpt
+	backend.Logger.Info("sOpt: " + sOpt)
+	//backend.Logger.Info("Account id: " + accountId)
+
+	query.URL = query.CmdbUrl
+	//query.URL = query.CmdbUrl + "?" + sOpt
+	//query.URL = "http://34.199.12.114:5057/api/service-allocations/search?productId=1&deploymentEnvironmentId=2&moduleId=2&servicesId=2"
+	backend.Logger.Info("CMDB URL: " + query.URL)
+
 	cmdbResp, cmdbStatusCode, duration, err := infClient.GetResults(ctx, query, requestHeaders)
 	if err != nil {
-		backend.Logger.Error("error in getting cmdb response", "error", err.Error())
+		backend.Logger.Error("CMDB call failed. Error: ", "error", err.Error())
 		return nil, cmdbStatusCode, duration, err
 	}
 	cmdbByte := []byte(cmdbResp.(string))
@@ -201,5 +210,7 @@ func getCmdbData(ctx context.Context, infClient infinity.Client, query models.Qu
 func getAwsCredentials(ctx context.Context, infClient infinity.Client, query models.Query, requestHeaders map[string]string) (o any, statusCode int, duration time.Duration, err error) {
 	fmt.Println("Query vault to get aws credentials")
 	query.URL = query.VaultUrl + "/" + query.AccountId
+	//query.URL = fmt.Sprintf("http://34.199.12.114:5057/api/vault/accountId/%s", query.AccountId)
+	backend.Logger.Info("VAULT URL: " + query.URL)
 	return infClient.GetResults(ctx, query, requestHeaders)
 }

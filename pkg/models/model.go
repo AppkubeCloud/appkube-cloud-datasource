@@ -269,10 +269,15 @@ func LoadQuery(ctx context.Context, backendQuery backend.DataQuery, pluginContex
 // Changes to merge cloudwatch datasource
 func LoadQueryToIdentifyType(backendQuery backend.DataQuery) (Query, error) {
 	var query Query
-	err := json.Unmarshal(backendQuery.JSON, &query)
+	var dataQuery backend.DataQuery
+	err := json.Unmarshal(backendQuery.JSON, &dataQuery)
 	if err != nil {
 		return query, fmt.Errorf("error while parsing the query json. %s", err.Error())
 	}
-	//query = ApplyDefaultsToQuery(ctx, query)
+
+	err1 := json.Unmarshal(dataQuery.JSON, &query)
+	if err1 != nil {
+		return query, fmt.Errorf("error in unmarshalling query JSON. %s", err1.Error())
+	}
 	return query, err
 }
