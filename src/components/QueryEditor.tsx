@@ -32,26 +32,26 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
   useEffect(() => {
     if (onChanged.current === false) {
       if (!query.JSON) {
-              type: "appkube-cloudwatch",
-              queryType: "timeSeriesQuery",
-              source: "url",
-              productId: null,
-              environmentId: null,
-              moduleId: null,
-              serviceId: null,
-              serviceType: "java app service",
-              cmdbUrl: "http://34.199.12.114:6067/api/service-allocations/search",
-              vaultUrl: "http://34.199.12.114:6067/api/vault/accountId",
-              namespace: "AWS/EC2",
-              metricName: "CPUUtilization",
-              matchExact: true,
-              statistic: "Average",
+        query.JSON = {
+          type: "appkube-cloudwatch",
+          queryType: "timeSeriesQuery",
+          source: "url",
+          productId: null,
+          environmentId: null,
+          moduleId: null,
+          serviceId: null,
+          serviceType: "java app service",
+          cmdbUrl: "http://34.199.12.114:6067/api/service-allocations/search",
+          vaultUrl: "http://34.199.12.114:6067/api/vault/accountId",
+          namespace: "AWS/EC2",
+          metricName: "CPUUtilization",
+          matchExact: true,
+          statistic: "Average",
         };
         onChange(query);
         onChanged.current = true;
       }
     }
-
   }, [query, onChange]);
 
   const onSourceTypeChange = (value: any) => {
