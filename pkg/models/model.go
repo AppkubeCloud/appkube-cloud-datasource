@@ -29,6 +29,32 @@ type CmdbProductEnvModuleService struct {
 	serviceNature           string `json:"serviceNature,omitempty"`
 }
 
+type CmdbCloudElementResponse struct {
+	Id                       int64                  `json:"id"`
+	ElementType              string                 `json:"elementType,omitempty"`
+	HostedServices           map[string]interface{} `json:"hostedServices,omitempty"`
+	Arn                      string                 `json:"arn,omitempty"`
+	InstanceId               string                 `json:"instanceId,omitempty"`
+	InstanceName             string                 `json:"instanceName,omitempty"`
+	Category                 string                 `json:"category,omitempty"`
+	SlaJson                  map[string]interface{} `json:"slaJson,omitempty"`
+	CostJson                 map[string]interface{} `json:"costJson,omitempty"`
+	ViewJson                 map[string]interface{} `json:"viewJson,omitempty"`
+	ConfigJson               map[string]interface{} `json:"configJson,omitempty"`
+	ComplianceJson           map[string]interface{} `json:"complianceJson,omitempty"`
+	Status                   string                 `json:"status,omitempty"`
+	CreatedBy                string                 `json:"createdBy,omitempty"`
+	UpdatedBy                string                 `json:"updatedBy,omitempty"`
+	CreatedOn                string                 `json:"createdOn,omitempty"`
+	UpdatedOn                string                 `json:"updatedOn,omitempty"`
+	LandingzoneId            int64                  `json:"landingzoneId"`
+	LandingZone              string                 `json:"landingZone,omitempty"`
+	DbCategoryId             int64                  `json:"dbCategoryId"`
+	DbCategoryName           string                 `json:"dbCategoryName,omitempty"`
+	ProductEnclaveId         int64                  `json:"productEnclaveId"`
+	ProductEnclaveInstanceId string                 `json:"productEnclaveInstanceId,omitempty"`
+}
+
 type QueryType string
 
 const (
@@ -86,6 +112,10 @@ type Query struct {
 	Spreadsheet         string                   `json:"spreadsheet,omitempty"`
 	SheetName           string                   `json:"sheetName,omitempty"`
 	SheetRange          string                   `json:"range,omitempty"`
+	ElementType         string                   `json:"elementType,omitempty"`
+	ElementId           int64                    `json:"elementId,omitempty"`
+	CloudIdentifierName string                   `json:"cloudIdentifierName,omitempty"`
+	CloudIdentifierId   string                   `json:"cloudIdentifierId,omitempty"`
 	ProductId           int64                    `json:"productId,omitempty"`
 	EnvironmentId       int64                    `json:"environmentId,omitempty"`
 	ModuleId            int64                    `json:"moduleId,omitempty"`
@@ -269,15 +299,15 @@ func LoadQuery(ctx context.Context, backendQuery backend.DataQuery, pluginContex
 // Changes to merge cloudwatch datasource
 func LoadQueryToIdentifyType(backendQuery backend.DataQuery) (Query, error) {
 	var query Query
-	var dataQuery backend.DataQuery
-	err := json.Unmarshal(backendQuery.JSON, &dataQuery)
-	if err != nil {
-		return query, fmt.Errorf("error while parsing the query json. %s", err.Error())
-	}
+	//var dataQuery backend.DataQuery
+	//err := json.Unmarshal(backendQuery, &dataQuery)
+	//if err != nil {
+	//	return query, fmt.Errorf("error while parsing the query json. %s", err.Error())
+	//}
 
-	err1 := json.Unmarshal(dataQuery.JSON, &query)
+	err1 := json.Unmarshal(backendQuery.JSON, &query)
 	if err1 != nil {
 		return query, fmt.Errorf("error in unmarshalling query JSON. %s", err1.Error())
 	}
-	return query, err
+	return query, err1
 }

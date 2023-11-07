@@ -35,7 +35,8 @@ func main() {
 		log.DefaultLogger.Error(err.Error())
 		os.Exit(1)
 	}
-
+	//testCloudwatchMetrics()
+	//testCloudWatchLogs()
 }
 
 func testCloudwatchMetrics() {
@@ -53,24 +54,41 @@ func testCloudwatchMetrics() {
 	}
 	dataQueryObj := backend.DataQuery{
 		JSON: []byte(fmt.Sprintf(`{
+						"refId": "A",
 						"type": "appkube-cloudwatch",
 						"queryType":"timeSeriesQuery",
+						"queryMode":"Metrics",
 						"source": "url",
 						"productId": 1,
-						"environmentId": 2,
+						"environmentId": 9329,
 						"moduleId": 2,
 						"serviceId":2,
 						"serviceType": "java app service",
 						"cmdbUrl": "%s",
 						"vaultUrl":"%s",
-						"Namespace":  "AWS/EC2",
-						"MetricName": "CPUUtilization",
-						"Statistic":  "Average",
-						"MatchExact": true,
-						"accountId": "%s"
+						"namespace":  "AWS/EC2",
+						"metricName": "CPUUtilization",
+						"statistic":  "Average",
+						"matchExact": true,
+						"expression":"",
+						"id":"",
+						"alias":"",
+						"period":"",
+						"metricQueryType":0,
+						"metricEditorMode":0,
+						"sqlExpression":"",
+						"accountId": "%s",
+						"elementType":  "EC2",
+						"elementId":  9329,
+						"cloudIdentifierName":  "i-09ccf4e2e087fa88f",
+						"cloudIdentifierId":  "i-09ccf4e2e087fa88f",
+						"region":""
 
 					}`, cmdbUrl, vaultUrl, accountId)),
-		TimeRange: dt,
+		TimeRange:     dt,
+		RefID:         "A",
+		MaxDataPoints: 1048,
+		Interval:      20000,
 	}
 	ary := []backend.DataQuery{dataQueryObj}
 	req := &backend.QueryDataRequest{
@@ -83,6 +101,7 @@ func testCloudwatchMetrics() {
 	fmt.Println("Response: ", res)
 }
 func testCloudWatchLogs() {
+	fmt.Println("Calling cloudwatch logs")
 	vaultUrl := "http://localhost:5057/api/vault/accountId"
 	cmdbUrl := "http://localhost:5057/api/service-detail/search-with-filter"
 	//awsxApiUrl := "http://localhost:7000/awsx/appconfig?accountId="
@@ -96,11 +115,12 @@ func testCloudWatchLogs() {
 	}
 	dataQueryObj := backend.DataQuery{
 		JSON: []byte(fmt.Sprintf(`{
+						"refId": "A",
 						"type": "appkube-cloudwatch",
 						"queryType":"logAction",
 						"source": "url",
 						"productId": 1,
-						"environmentId": 2,
+						"environmentId": 9329,
 						"moduleId": 2,
 						"serviceId":2,
 						"serviceType": "java app service",
@@ -111,7 +131,12 @@ func testCloudWatchLogs() {
 						"logGroupNames":["/aws/lambda/cronlike"],
 						"queryString":"filter @message like /error/| stats count() as ErrorCount",
 						"subType":"StartQuery",
-						"startFromHead":true
+						"startFromHead":true,
+						"elementType":  "EC2",
+						"elementId":  9329,
+						"cloudIdentifierName":  "i-09ccf4e2e087fa88f",
+						"cloudIdentifierId":  "i-09ccf4e2e087fa88f",
+						"region":""
 					}`, cmdbUrl, vaultUrl, accountId)),
 		TimeRange: dt,
 	}
