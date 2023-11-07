@@ -18,8 +18,8 @@ export const SOURCE_TYPE = [
 ];
 
 export const METRIC_TYPE = [
-    { label: 'Metric Search', value: "metric_search" },
-    { label: 'Metric Query', value: "metric_query" },
+    { label: 'INFRA', value: "infra" },
+    { label: 'SERVICE', value: "service" },
 ];
 
 export const DUMMY_PRODUCTS = [

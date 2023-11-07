@@ -1,32 +1,29 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { InlineField, Select, RadioButtonGroup } from '@grafana/ui';
-// import { QueryEditorProps } from '@grafana/data';
-// import { DataSource } from '../datasource';
-// import { MyDataSourceOptions, MyQuery } from '../types';
+import { InlineField, Select, Input } from '@grafana/ui';
 import {
   SOURCE_TYPE,
   SOURCE_VALUE,
   METRIC_TYPE,
-  METRIC_EDITOR_MODES,
   MetricEditorMode
 } from '../common-ds';
 import { Metric } from './EditorComponents/Metric';
 import { Log } from './EditorComponents/Log';
 import { Trace } from './EditorComponents/Trace';
 import { Api } from './EditorComponents/Api';
+import { services } from '../service';
 
 export function QueryEditor({ query, onChange, onRunQuery }: any) {
-
-  const [fetchedData, setFetchedData] = useState([]);
+  const [elementId, setElementId] = useState("");
   const onChanged = useRef(false);
 
   useEffect(() => {
-    (async () => {
-      fetch('http://34.199.12.114:6067/api/products')
-        .then(response => response.json())
-        .then(res => setFetchedData(res))
-        .catch(error => console.log(error));
-    })();
+    const id = findParam("var-elementId", window.location.href);
+    if (id) {
+      setElementId(id);
+      getCloudElements(id, query);
+    } else {
+      alert("Please set 'elementId' variable");
+    }
   }, []);
 
   useEffect(() => {
@@ -47,6 +44,10 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
           metricName: "CPUUtilization",
           matchExact: true,
           statistic: "Average",
+          "elementType": "",
+          "elementId": "",
+          "cloudIdentifierName": "i-09ccf4e2e087fa88f",
+          "cloudIdentifierId": "i-09ccf4e2e087fa88f"
         };
         onChange(query);
         onChanged.current = true;
@@ -54,21 +55,53 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
     }
   }, [query, onChange]);
 
+  const getCloudElements = (id: string, query: any) => {
+    services.getCloudElements(id).then((res) => {
+      if (res && res[0]) {
+        const cloudElement = res[0];
+        query.JSON = {
+          ...query.JSON,
+          "elementType": cloudElement.elementType,
+          "elementId": id,
+          "cloudIdentifierName": cloudElement.instanceName,
+          "cloudIdentifierId": cloudElement.instanceId
+        };
+        onChange({ ...query });
+      }
+    });
+  };
+
+  const findParam = (paramName: string, url: string) => {
+    if (!url) url = location.href;
+    paramName = paramName.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+    var regexS = "[\\?&]" + paramName + "=([^&#]*)";
+    var regex = new RegExp(regexS);
+    var results = regex.exec(url);
+    return results == null ? "" : results[1];
+  }
+
   const onSourceTypeChange = (value: any) => {
-    if (value === 'metric') {
+    if (value === SOURCE_VALUE.METRIC) {
       query.JSON.queryType = 'timeSeriesQuery';
-    } else if (value === 'log') {
+    } else if (value === SOURCE_VALUE.LOG) {
       query.JSON.queryType = 'logAction';
     }
-    onChange({ ...query, sourceType: value });
+    query.sourceType = value;
+    if (!elementId) {
+      const id = findParam("var-elementId", window.location.href);
+      if (id) {
+        setElementId(id);
+        getCloudElements(id, query);
+      } else {
+        alert("Please set 'elementId' variable");
+      }
+    } else {
+      getCloudElements(elementId, query);
+    }
   };
 
   const onMetricTypeChange = (value: any) => {
     onChange({ ...query, metricType: value });
-  };
-
-  const onEditorModeChange = (newMetricEditorMode: any) => {
-    onChange({ ...query, metricEditorMode: newMetricEditorMode });
   };
 
   const onChangeData = (value: any) => {
@@ -108,13 +141,10 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
                   menuShouldPortal={true}
                 />
               </InlineField>
+              <InlineField label="Element ID">
+                <Input disabled={true} value={elementId} />
+              </InlineField>
               <div style={{ display: "block", flexGrow: "1" }} />
-              <RadioButtonGroup
-                options={METRIC_EDITOR_MODES}
-                size="sm"
-                value={defaultMetricMode}
-                onChange={onEditorModeChange}
-              />
             </>
             :
             <></>
@@ -127,7 +157,6 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
               query={JSON ? JSON : {}}
               onChange={onChangeData}
               editorMode={defaultMetricMode}
-              apiData={fetchedData}
             />
             :
             <></>
@@ -137,7 +166,6 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
             <Log
               query={JSON ? JSON : {}}
               onChange={onChangeData}
-              apiData={fetchedData}
             />
             :
             <></>
@@ -147,7 +175,6 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
             <Trace
               query={JSON ? JSON : {}}
               onChange={onChangeData}
-              apiData={fetchedData}
             />
             :
             <></>
@@ -157,7 +184,6 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
             <Api
               query={JSON ? JSON : {}}
               onChange={onChangeData}
-              apiData={fetchedData}
             />
             :
             <></>
