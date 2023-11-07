@@ -243,24 +243,33 @@ func (e *cloudWatchExecutor) newSession(pluginCtx backend.PluginContext, region 
 	//	region = instance.Settings.Region
 	//}
 
-	//return e.sessions.GetSession(awsds.SessionConfig{
-	//	//https://github.com/appkube/cloud-datasource/issues/46365
-	//	//HTTPClient: dsInfo.HTTPClient,
-	//	Settings: awsds.AWSDatasourceSettings{
-	//		Profile:       instance.Settings.Profile,
-	//		Region:        region,
-	//		AuthType:      instance.Settings.AuthType,
-	//		AssumeRoleARN: instance.Settings.AssumeRoleARN,
-	//		ExternalID:    instance.Settings.ExternalID,
-	//		Endpoint:      instance.Settings.Endpoint,
-	//		DefaultRegion: instance.Settings.Region,
-	//		AccessKey:     instance.Settings.AccessKey,
-	//		SecretKey:     instance.Settings.SecretKey,
-	//	},
-	//	UserAgentName: aws.String("Cloudwatch"),
-	//})
+	return e.sessions.GetSession(awsds.SessionConfig{
+		//https://github.com/appkube/cloud-datasource/issues/46365
+		//HTTPClient: dsInfo.HTTPClient,
+		Settings: awsds.AWSDatasourceSettings{
+			//Profile:       instance.Settings.Profile,
+			//Region:        region,
+			//AuthType:      instance.Settings.AuthType,
+			//AssumeRoleARN: instance.Settings.AssumeRoleARN,
+			//ExternalID:    instance.Settings.ExternalID,
+			//Endpoint:      instance.Settings.Endpoint,
+			//DefaultRegion: instance.Settings.Region,
+			//AccessKey:     instance.Settings.AccessKey,
+			//SecretKey:     instance.Settings.SecretKey,
 
-	return e.assumeRoleSession, nil
+			Region:        e.AwsCreds.Region,
+			AuthType:      awsds.AuthTypeKeys,
+			AssumeRoleARN: e.AwsCreds.CrossAccountRoleArn,
+			ExternalID:    e.AwsCreds.ExternalId,
+			//Endpoint:      instance.Settings.Endpoint,
+			DefaultRegion: e.AwsCreds.Region,
+			AccessKey:     e.AwsCreds.AccessKey,
+			SecretKey:     e.AwsCreds.SecretKey,
+		},
+		UserAgentName: aws.String("Cloudwatch"),
+	})
+
+	//return e.assumeRoleSession, nil
 
 }
 
@@ -336,7 +345,7 @@ func (e *cloudWatchExecutor) alertQuery(ctx context.Context, logsClient cloudwat
 	return nil, nil
 }
 
-func (e *cloudWatchExecutor) QueryData(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
+func (e *cloudWatchExecutor) QueryData(ctx context.Context, req *backend.QueryDataRequest, q backend.DataQuery, region string) (*backend.QueryDataResponse, error) {
 	logger := logger.FromContext(ctx)
 	/*
 		Unlike many other data sources, with Cloudwatch Logs query requests don't receive the results as the response
@@ -345,12 +354,13 @@ func (e *cloudWatchExecutor) QueryData(ctx context.Context, req *backend.QueryDa
 		queries made via dashboards and Explore, the logic of making these repeated queries is handled on the
 		frontend, but because alerts are executed on the backend the logic needs to be reimplemented here.
 	*/
-	q := req.Queries[0]
+	//q := req.Queries[0]
 	var model DataQueryJson
 	err := json.Unmarshal(q.JSON, &model)
 	if err != nil {
 		return nil, err
 	}
+	model.Region = region // assigning region explicitly. Change for appkube datasource
 	_, fromAlert := req.Headers["FromAlert"]
 	isLogAlertQuery := fromAlert && model.QueryMode == logsQueryMode
 
@@ -367,7 +377,7 @@ func (e *cloudWatchExecutor) QueryData(ctx context.Context, req *backend.QueryDa
 	case timeSeriesQuery:
 		fallthrough
 	default:
-		result, err = e.executeTimeSeriesQuery(ctx, logger, req)
+		result, err = e.executeTimeSeriesQuery(ctx, logger, req, q)
 	}
 
 	return result, err

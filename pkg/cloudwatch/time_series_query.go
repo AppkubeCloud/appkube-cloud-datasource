@@ -15,7 +15,7 @@ type responseWrapper struct {
 	RefId        string
 }
 
-func (e *cloudWatchExecutor) executeTimeSeriesQuery(ctx context.Context, logger log.Logger, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
+func (e *cloudWatchExecutor) executeTimeSeriesQuery(ctx context.Context, logger log.Logger, req *backend.QueryDataRequest, singleQuery backend.DataQuery) (*backend.QueryDataResponse, error) {
 	logger.Debug("Executing time series query")
 	resp := backend.NewQueryDataResponse()
 
@@ -33,26 +33,33 @@ func (e *cloudWatchExecutor) executeTimeSeriesQuery(ctx context.Context, logger 
 	//if err != nil {
 	//	return nil, err
 	//}
-	flagCloudWatchDynamicLabels := true        // will come as parameter later
+	flagCloudWatchDynamicLabels := false       // will come as parameter later
 	flagCloudWatchCrossAccountQuerying := true // will come as parameter later
-	requestQueries, err := models.ParseMetricDataQueries(req.Queries, startTime, endTime, e.AwsCreds.Region,
+	requestQueries, err := models.ParseMetricDataQueries(singleQuery, req.Queries, startTime, endTime, e.AwsCreds.Region,
 		flagCloudWatchDynamicLabels,
 		flagCloudWatchCrossAccountQuerying)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(requestQueries) == 0 {
-		return backend.NewQueryDataResponse(), nil
-	}
+	//if len(requestQueries) == 0 {
+	//	return backend.NewQueryDataResponse(), nil
+	//}
+
+	// change for appkube datasource
+	var result []*models.CloudWatchQuery
+	result = append(result, requestQueries)
+	// change for appkube datasource
 
 	requestQueriesByRegion := make(map[string][]*models.CloudWatchQuery)
-	for _, query := range requestQueries {
-		if _, exist := requestQueriesByRegion[query.Region]; !exist {
-			requestQueriesByRegion[query.Region] = []*models.CloudWatchQuery{}
-		}
-		requestQueriesByRegion[query.Region] = append(requestQueriesByRegion[query.Region], query)
+	//for _, query := range requestQueries {
+	if _, exist := requestQueriesByRegion[requestQueries.Region]; !exist {
+		//requestQueriesByRegion[requestQueries.Region] = []*models.CloudWatchQuery{}
+		// change for appkube datasource
+		requestQueriesByRegion[requestQueries.Region] = result
 	}
+	//requestQueriesByRegion[requestQueries.Region] = append(requestQueriesByRegion[requestQueries.Region], requestQueriesByRegion)
+	//}
 
 	resultChan := make(chan *responseWrapper, len(req.Queries))
 	eg, ectx := errgroup.WithContext(ctx)
@@ -62,7 +69,7 @@ func (e *cloudWatchExecutor) executeTimeSeriesQuery(ctx context.Context, logger 
 		eg.Go(func() error {
 			defer func() {
 				if err := recover(); err != nil {
-					logger.Error("Execute Get Metric Data Query Panic", "error", err, "stack", log.Stack(1))
+					logger.Error("Execute Get CW Metric Data Query Panic", "error", err, "stack", log.Stack(1))
 					if theErr, ok := err.(error); ok {
 						resultChan <- &responseWrapper{
 							DataResponse: &backend.DataResponse{
@@ -74,22 +81,30 @@ func (e *cloudWatchExecutor) executeTimeSeriesQuery(ctx context.Context, logger 
 			}()
 
 			client, err := e.getCWClient(req.PluginContext, region)
+			logger.Info("AWS CW client created: ", client)
 			if err != nil {
+				logger.Error("Failed to get cloud-watch client. ", err)
 				return err
 			}
 
 			metricDataInput, err := e.buildMetricDataInput(logger, startTime, endTime, requestQueries)
+			logger.Info("AWS CW metric data input created: ", metricDataInput)
 			if err != nil {
+				logger.Error("Failed to get metric data input. ", err)
 				return err
 			}
 
 			mdo, err := e.executeRequest(ectx, client, metricDataInput)
+			logger.Info("AWS CW request executed : ", mdo)
 			if err != nil {
+				logger.Error("Failed to execute cloud-watch time series query. ", err)
 				return err
 			}
 
 			res, err := e.parseResponse(startTime, endTime, mdo, requestQueries)
+			logger.Info("AWS CW response parsed : ", res)
 			if err != nil {
+				logger.Error("Failed to parse cloud-watch metric output. ", err)
 				return err
 			}
 
@@ -102,6 +117,8 @@ func (e *cloudWatchExecutor) executeTimeSeriesQuery(ctx context.Context, logger 
 	}
 
 	if err := eg.Wait(); err != nil {
+		logger.Error("AWS CW metric call failed. Error: ", err)
+		fmt.Println("AWS CW metric call failed. Error: ", err)
 		dataResponse := backend.DataResponse{
 			Error: fmt.Errorf("metric request error: %q", err),
 		}
@@ -112,6 +129,7 @@ func (e *cloudWatchExecutor) executeTimeSeriesQuery(ctx context.Context, logger 
 	close(resultChan)
 
 	for result := range resultChan {
+		fmt.Println("Accumulating AWS CW result", result.DataResponse)
 		resp.Responses[result.RefId] = *result.DataResponse
 	}
 

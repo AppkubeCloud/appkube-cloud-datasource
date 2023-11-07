@@ -229,49 +229,57 @@ type metricsDataQuery struct {
 
 // ParseMetricDataQueries decodes the metric data queries json, validates, sets default values and returns an array of CloudWatchQueries.
 // The CloudWatchQuery has a 1 to 1 mapping to a query editor row
-func ParseMetricDataQueries(dataQueries []backend.DataQuery, startTime time.Time, endTime time.Time, defaultRegion string, dynamicLabelsEnabled,
-	crossAccountQueryingEnabled bool) ([]*CloudWatchQuery, error) {
-	var metricDataQueries = make(map[string]metricsDataQuery)
-	for _, query := range dataQueries {
-		var metricsDataQuery metricsDataQuery
-		err := json.Unmarshal(query.JSON, &metricsDataQuery)
-		if err != nil {
-			return nil, &QueryError{Err: err, RefID: query.RefID}
-		}
-
-		queryType := metricsDataQuery.QueryType
-		if queryType != timeSeriesQuery && queryType != "" {
-			continue
-		}
-
-		metricDataQueries[query.RefID] = metricsDataQuery
+func ParseMetricDataQueries(q backend.DataQuery, dataQueries []backend.DataQuery, startTime time.Time, endTime time.Time, defaultRegion string, dynamicLabelsEnabled,
+	crossAccountQueryingEnabled bool) (*CloudWatchQuery, error) {
+	//var metricDataQueries = make(map[string]metricsDataQuery)
+	//for _, query := range dataQueries {
+	var metricsDataQuery metricsDataQuery
+	err := json.Unmarshal(q.JSON, &metricsDataQuery)
+	if err != nil {
+		return nil, &QueryError{Err: err, RefID: q.RefID}
 	}
 
-	var result []*CloudWatchQuery
-	for refId, mdq := range metricDataQueries {
+	//below if condition is a change for appkube datasource
+	if metricsDataQuery.Region == "" {
+		metricsDataQuery.Region = defaultRegion //change for appkube datasource
+	}
+
+	queryType := metricsDataQuery.QueryType
+	//if queryType != timeSeriesQuery && queryType != "" {
+	//	continue
+	//}
+
+	//metricDataQueries[query.RefID] = metricsDataQuery
+	//}
+
+	//var result []*CloudWatchQuery
+	//for refId, mdq := range metricDataQueries {
+	if queryType == timeSeriesQuery {
 		cwQuery := &CloudWatchQuery{
-			Alias:             mdq.Alias,
-			RefId:             refId,
-			Id:                mdq.Id,
-			Region:            mdq.Region,
-			Namespace:         mdq.Namespace,
-			MetricName:        mdq.MetricName,
-			MetricQueryType:   mdq.MetricQueryType,
-			SqlExpression:     mdq.SqlExpression,
-			TimezoneUTCOffset: mdq.TimezoneUTCOffset,
-			Expression:        mdq.Expression,
+			Alias:             metricsDataQuery.Alias,
+			RefId:             q.RefID,
+			Id:                metricsDataQuery.Id,
+			Region:            metricsDataQuery.Region,
+			Namespace:         metricsDataQuery.Namespace,
+			MetricName:        metricsDataQuery.MetricName,
+			MetricQueryType:   metricsDataQuery.MetricQueryType,
+			SqlExpression:     metricsDataQuery.SqlExpression,
+			TimezoneUTCOffset: metricsDataQuery.TimezoneUTCOffset,
+			Expression:        metricsDataQuery.Expression,
 		}
 
-		if err := cwQuery.validateAndSetDefaults(refId, mdq, startTime, endTime, defaultRegion, crossAccountQueryingEnabled); err != nil {
-			return nil, &QueryError{Err: err, RefID: refId}
+		if err := cwQuery.validateAndSetDefaults(q.RefID, metricsDataQuery, startTime, endTime, defaultRegion, crossAccountQueryingEnabled); err != nil {
+			return nil, &QueryError{Err: err, RefID: q.RefID}
 		}
 
-		cwQuery.migrateLegacyQuery(mdq, dynamicLabelsEnabled)
+		cwQuery.migrateLegacyQuery(metricsDataQuery, dynamicLabelsEnabled)
 
-		result = append(result, cwQuery)
+		//result = append(result, cwQuery)
+		//}
+
+		return cwQuery, nil
 	}
-
-	return result, nil
+	return nil, fmt.Errorf("its not a time series query")
 }
 
 func (q *CloudWatchQuery) migrateLegacyQuery(query metricsDataQuery, dynamicLabelsEnabled bool) {

@@ -17,7 +17,7 @@ func (e *cloudWatchExecutor) buildMetricDataInput(logger log.Logger, startTime t
 		EndTime:   aws.Time(endTime),
 		ScanBy:    aws.String("TimestampAscending"),
 	}
-	flagCloudWatchDynamicLabels := true // will come as parameter later
+	flagCloudWatchDynamicLabels := false // will come as parameter later
 	//shouldSetLabelOptions := e.features.IsEnabled(featuremgmt.FlagCloudWatchDynamicLabels) && len(queries) > 0 && len(queries[0].TimezoneUTCOffset) > 0
 	shouldSetLabelOptions := flagCloudWatchDynamicLabels && len(queries) > 0 && len(queries[0].TimezoneUTCOffset) > 0
 
