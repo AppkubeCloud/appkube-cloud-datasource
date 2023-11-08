@@ -2,8 +2,7 @@ import { DataSourceInstanceSettings, CoreApp, DataQueryRequest, DataQueryRespons
 import { DataSourceWithBackend } from '@grafana/runtime';
 import { services } from './service';
 import { MyQuery, MyDataSourceOptions, DEFAULT_QUERY } from './types';
-import { Observable, from, map, mergeMap } from 'rxjs';
-import { flatMap } from 'lodash';
+import { Observable, from, mergeMap } from 'rxjs';
 
 export class DataSource extends DataSourceWithBackend<MyQuery, MyDataSourceOptions> {
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
