@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { InlineField, Select, Input } from '@grafana/ui';
 import {
   SOURCE_TYPE,
@@ -16,75 +16,74 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
   const [elementId, setElementId] = useState("");
   const onChanged = useRef(false);
 
-  useEffect(() => {
-    const id = findParam("var-elementId", window.location.href);
-    if (id) {
-      setElementId(id);
-      getCloudElements(id, query);
-    } else {
-      alert("Please set 'elementId' variable");
-    }
-  }, []);
-
-  useEffect(() => {
-    if (onChanged.current === false) {
-      if (!query.JSON) {
-        query.JSON = {
-          type: "appkube-cloudwatch",
-          queryType: "timeSeriesQuery",
-          source: "url",
-          productId: null,
-          environmentId: null,
-          moduleId: null,
-          serviceId: null,
-          serviceType: "java app service",
-          cmdbUrl: "http://34.199.12.114:6067/api/service-allocations/search",
-          vaultUrl: "http://34.199.12.114:6067/api/vault/accountId",
-          namespace: "AWS/EC2",
-          metricName: "CPUUtilization",
-          matchExact: true,
-          statistic: "Average",
-          "elementType": "",
-          "elementId": "",
-          "cloudIdentifierName": "i-09ccf4e2e087fa88f",
-          "cloudIdentifierId": "i-09ccf4e2e087fa88f"
-        };
-        onChange(query);
-        onChanged.current = true;
-      }
-    }
-  }, [query, onChange]);
-
-  const getCloudElements = (id: string, query: any) => {
+  const getCloudElements = useCallback((id: string, query: any) => {
     services.getCloudElements(id).then((res) => {
       if (res && res[0]) {
         const cloudElement = res[0];
-        query.JSON = {
-          ...query.JSON,
+        query = {
+          ...query,
           "elementType": cloudElement.elementType,
-          "elementId": id,
+          "elementId": parseInt(id, 10),
           "cloudIdentifierName": cloudElement.instanceName,
-          "cloudIdentifierId": cloudElement.instanceId
+          "cloudIdentifierId": cloudElement.instanceId,
+          "type": "appkube-cloudwatch",
+          "queryMode": "Metrics",
+          "source": "url",
+          "productId": 1,
+          "environmentId": parseInt(id, 10),
+          "moduleId": 2,
+          "serviceId": 2,
+          "serviceType": "java app service",
+          "cmdbUrl": "",
+          "vaultUrl": "",
+          "namespace": "AWS/EC2",
+          "metricName": "CPUUtilization",
+          "statistic": "Average",
+          "matchExact": true,
+          "expression": "",
+          "id": "",
+          "alias": "",
+          "period": "",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "sqlExpression": "",
+          "accountId": "657907747545",
+          "region": ""
         };
         onChange({ ...query });
       }
     });
-  };
+  }, [onChange]);
+
+  useEffect(() => {
+    if (onChanged.current === false) {
+      const id = findParam("var-elementId", window.location.href);
+      if (id) {
+        setElementId(id);
+        getCloudElements(id, query);
+      } else {
+        alert("Please set 'elementId' variable");
+      }
+      onChanged.current = true;
+    }
+  }, [query, onChange, getCloudElements]);
 
   const findParam = (paramName: string, url: string) => {
-    if (!url) url = location.href;
+    if (!url) {
+      url = location.href;
+    }
     paramName = paramName.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-    var regexS = "[\\?&]" + paramName + "=([^&#]*)";
-    var regex = new RegExp(regexS);
-    var results = regex.exec(url);
+    const regexS = "[\\?&]" + paramName + "=([^&#]*)";
+    const regex = new RegExp(regexS);
+    const results = regex.exec(url);
     return results == null ? "" : results[1];
   }
 
   const onSourceTypeChange = (value: any) => {
     if (value === SOURCE_VALUE.METRIC) {
-      query.JSON.queryType = 'timeSeriesQuery';
+      query.queryType = 'timeSeriesQuery';
     } else if (value === SOURCE_VALUE.LOG) {
-      query.JSON.queryType = 'logAction';
+      query.queryType = 'logAction';
     }
     query.sourceType = value;
     if (!elementId) {
@@ -105,14 +104,13 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
   };
 
   const onChangeData = (value: any) => {
-    onChange({ ...query, JSON: value });
+    onChange({ ...query, ...value });
   };
 
   const {
     sourceType,
     metricType,
     metricEditorMode,
-    JSON
   } = query;
 
   const defaultMetricMode = metricEditorMode ? metricEditorMode : MetricEditorMode.Builder;
@@ -154,7 +152,7 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
         {
           sourceType === SOURCE_VALUE.METRIC ?
             <Metric
-              query={JSON ? JSON : {}}
+              query={query}
               onChange={onChangeData}
               editorMode={defaultMetricMode}
             />
@@ -164,7 +162,7 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
         {
           sourceType === SOURCE_VALUE.LOG ?
             <Log
-              query={JSON ? JSON : {}}
+              query={query}
               onChange={onChangeData}
             />
             :
@@ -173,7 +171,7 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
         {
           sourceType === SOURCE_VALUE.TRACE ?
             <Trace
-              query={JSON ? JSON : {}}
+              query={query}
               onChange={onChangeData}
             />
             :
@@ -182,7 +180,7 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
         {
           sourceType === SOURCE_VALUE.API ?
             <Api
-              query={JSON ? JSON : {}}
+              query={query}
               onChange={onChangeData}
             />
             :
