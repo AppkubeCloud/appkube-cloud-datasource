@@ -1,4 +1,4 @@
-import { DataSourceInstanceSettings, CoreApp, DataQueryRequest, DataQueryResponse, ScopedVars } from '@grafana/data';
+import { DataSourceInstanceSettings, CoreApp, DataQueryRequest, DataQueryResponse } from '@grafana/data';
 import { DataSourceWithBackend } from '@grafana/runtime';
 import { services } from './service';
 import { MyQuery, MyDataSourceOptions, DEFAULT_QUERY } from './types';
