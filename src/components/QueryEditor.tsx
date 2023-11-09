@@ -17,48 +17,45 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
   const [metricsList, setMetricsList] = useState([]);
   const onChanged = useRef(false);
 
-  const changeQuery = (cloudElement: any, id: any) => {
-    query = {
-      ...query,
-      "elementType": cloudElement.elementType,
-      "elementId": parseInt(id, 10),
-      "cloudIdentifierName": cloudElement.instanceName,
-      "cloudIdentifierId": cloudElement.instanceId,
-      "type": "appkube-cloudwatch",
-      "queryMode": "Metrics",
-      "source": "url",
-      "productId": 1,
-      "environmentId": parseInt(id, 10),
-      "moduleId": 2,
-      "serviceId": 2,
-      "serviceType": "java app service",
-      "cmdbUrl": "",
-      "vaultUrl": "",
-      "namespace": cloudElement.elementType,
-      "matchExact": true,
-      "expression": "",
-      "id": "",
-      "alias": "",
-      "period": "",
-      "metricQueryType": 0,
-      "metricEditorMode": 0,
-      "sqlExpression": "",
-      "accountId": "657907747545",
-      "region": ""
-    };
-    onChange({ ...query });
-  };
-
   const getCloudElements = useCallback((id: string, query: any) => {
     services.getCloudElements(id).then((res) => {
       if (res && res[0]) {
-        changeQuery(res[0], id);
-        services.getMetricsList(res[0].elementType).then((res)=>{
+        const cloudElement = res[0];
+        query = {
+          ...query,
+          "elementType": cloudElement.elementType,
+          "elementId": parseInt(id, 10),
+          "cloudIdentifierName": cloudElement.instanceName,
+          "cloudIdentifierId": cloudElement.instanceId,
+          "type": "appkube-cloudwatch",
+          "queryMode": "Metrics",
+          "source": "url",
+          "productId": 1,
+          "environmentId": parseInt(id, 10),
+          "moduleId": 2,
+          "serviceId": 2,
+          "serviceType": "java app service",
+          "cmdbUrl": "",
+          "vaultUrl": "",
+          "namespace": cloudElement.elementType,
+          "matchExact": true,
+          "expression": "",
+          "id": "",
+          "alias": "",
+          "period": "",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "sqlExpression": "",
+          "accountId": "657907747545",
+          "region": ""
+        };
+        onChange({ ...query });
+        services.getMetricsList(res[0].elementType).then((res) => {
           setMetricsList(res);
         });
       }
     });
-  }, [changeQuery]);
+  }, [onChange]);
 
   useEffect(() => {
     if (onChanged.current === false) {
