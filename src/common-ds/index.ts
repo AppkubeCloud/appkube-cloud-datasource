@@ -53,16 +53,12 @@ export const DUMMY_SERVICES = [
     { label: 'GitHub', value: "Engagement" },
 ];
 
-export const DUMMY_METRIC_NAME = [
-    { label: 'Metric 1', value: "Metric 1" },
-    { label: 'Metric 2', value: "Metric 2" },
-    { label: 'Metric 3', value: "Metric 3" },
-];
-
-export const DUMMY_STASTISTIC = [
-    { label: 'Stastic 1', value: "Stastic 1" },
-    { label: 'Stastic 2', value: "Stastic 2" },
-    { label: 'Stastic 3', value: "Stastic 3" },
+export const STASTISTIC = [
+    { label: 'Maximum', value: "Maximum" },
+    { label: 'Minimum', value: "Minimum" },
+    { label: 'Sum', value: "Sum" },
+    { label: 'SampleCount', value: "SampleCount" },
+    { label: 'Average', value: "Average" },
 ];
 
 export const METRIC_EDITOR_MODES = [

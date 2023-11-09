@@ -1,10 +1,10 @@
 import React from 'react';
 import { Select, InlineField, Input } from '@grafana/ui';
 import { EditorRow, EditorRows } from '../../extended/EditorRow';
-import { DUMMY_METRIC_NAME, DUMMY_STASTISTIC, MetricEditorMode } from '../../common-ds';
+import { STASTISTIC, MetricEditorMode } from '../../common-ds';
 
-export function Metric({ query, onChange, editorMode }: any) {
-  const { elementType, cloudIdentifierId, MetricName, statistic, metricQuery } = query;
+export function Metric({ query, onChange, editorMode, metricsList }: any) {
+  const { elementType, cloudIdentifierId, metricName, statistic, metricQuery } = query;
 
   const onChangeElementType = (e: any) => {
     onChange({ ...query, elementType: e.target.value });
@@ -19,7 +19,7 @@ export function Metric({ query, onChange, editorMode }: any) {
   };
 
   const onChangeMetricName = (value: any) => {
-    onChange({ ...query, MetricName: value });
+    onChange({ ...query, metricName: value });
   };
 
   const onChangeStatistic = (value: any) => {
@@ -43,14 +43,14 @@ export function Metric({ query, onChange, editorMode }: any) {
             <InlineField label="Metric Name">
               <Select
                 className="min-width-12 width-12"
-                value={MetricName}
-                options={DUMMY_METRIC_NAME}
+                value={metricName}
+                options={metricsList}
                 onChange={(e) => onChangeMetricName(e.value)}
                 menuShouldPortal={true}
               />
             </InlineField>
             <InlineField label="Statistic">
-              <Select className="min-width-12 width-12" value={statistic} options={DUMMY_STASTISTIC} onChange={(e) => onChangeStatistic(e.value)} menuShouldPortal={true} />
+              <Select className="min-width-12 width-12" value={statistic} options={STASTISTIC} onChange={(e) => onChangeStatistic(e.value)} menuShouldPortal={true} />
             </InlineField>
           </EditorRow> :
           <EditorRow label="">
