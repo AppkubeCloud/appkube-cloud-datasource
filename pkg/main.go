@@ -7,9 +7,6 @@ import (
 	"github.com/appkube/cloud-datasource/pkg/models"
 	"github.com/appkube/cloud-datasource/pkg/pluginhost"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
-	"os"
 	"time"
 )
 
@@ -30,13 +27,14 @@ func main() {
 	//}
 
 	//new code. Need this code only
-	err := datasource.Serve(pluginhost.NewDatasource())
-	if err != nil {
-		log.DefaultLogger.Error(err.Error())
-		os.Exit(1)
-	}
+	//err := datasource.Serve(pluginhost.NewDatasource())
+	//if err != nil {
+	//	log.DefaultLogger.Error(err.Error())
+	//	os.Exit(1)
+	//}
 	//testCloudwatchMetrics()
 	//testCloudWatchLogs()
+	testAppkubeMetricsAPIcall()
 }
 
 func testCloudwatchMetrics() {
@@ -52,6 +50,7 @@ func testCloudwatchMetrics() {
 		From: time.Date(2000, 11, 17, 20, 34, 58, 651387237, time.UTC),
 		To:   time.Now(),
 	}
+
 	dataQueryObj := backend.DataQuery{
 		JSON: []byte(fmt.Sprintf(`{
 						"refId": "A",
@@ -164,7 +163,7 @@ func testAppkubeAPIcall() {
 		fmt.Println("Error getting client: ", err)
 	}
 
-	res := pluginhost.QueryData(nil, 200, context.Background(), backend.DataQuery{
+	res := pluginhost.QueryData(context.Background(), backend.DataQuery{
 		JSON: []byte(fmt.Sprintf(`{
 					"type": "appkube-cloudwatch",
 					"source": "url",
@@ -180,4 +179,24 @@ func testAppkubeAPIcall() {
 				}`, awsxApiUrl, cmdbUrl, vaultUrl, accountId)),
 	}, *client, map[string]string{}, backend.PluginContext{})
 	fmt.Println("Response: ", res.Frames)
+}
+
+func testAppkubeMetricsAPIcall() {
+	client, err := infinity.NewClient(models.InfinitySettings{})
+	if err != nil {
+		fmt.Println("Error getting client: ", err)
+	}
+	res := pluginhost.QueryData(context.Background(), backend.DataQuery{
+		JSON: []byte(`{
+   "type": "appkube-metrics",
+   "url_options": {
+      "method": "POST",
+      "data": "{\"zone\":\"us-east-1\",\"accessKey\":\"<accessKey>\",\"secretKey\":\"<secretKey>\",\"externalId\":\"<externalId>\",\"crossAccountRoleArn\":\"<crossAccountRoleArn>,\"MaxDataPoint\": 100,\"Interval\": 60,\"TimeRange\": {\"From\": \"\",\"To\": \"\",\"TimeZone\": \"UTC\"},\"Query\": [{\"Namespace\": \"AWS/EC2\",\"MetricName\": \"CPUUtilization\",\"Period\": 300,\"Stat\": \"Average\",\"Dimensions\": [{\"Name\": \"InstanceId\",\"Value\": \"i-05e4e6757f13da657\"}]}]}]}"
+   }
+}
+
+
+`),
+	}, *client, map[string]string{}, backend.PluginContext{})
+	fmt.Println("Response:-------- ", res.Frames)
 }

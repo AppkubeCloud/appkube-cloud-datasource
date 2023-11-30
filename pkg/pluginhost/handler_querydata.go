@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/appkube/cloud-datasource/pkg/cloudwatch"
 	"github.com/appkube/cloud-datasource/pkg/infra/httpclient"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -28,59 +29,28 @@ func (ds PluginHost) QueryData(ctx context.Context, req *backend.QueryDataReques
 	}
 	//backend.Logger.Info("COMPLETE REQUEST :::::::::: ", req)
 	for _, q := range req.Queries {
-		//backend.Logger.Info("Q only ------->>>>>>>> ", req)
-		//modifications for aws cloudwatch
 		query, err := models.LoadQueryToIdentifyType(q)
 
 		if err != nil {
 			backend.Logger.Error("error un-marshaling the query", "error", err.Error())
 			return response, fmt.Errorf("error un-marshaling the query. %w", err)
 		}
-		//backend.Logger.Info("QUERY>>>>>>>>>> : ", query)
-		cmdbResp, cmdbStatusCode, _, err := getCmdbData(ctx, *client.client, query, req.Headers)
-		//cmdbResp, cmdbStatusCode, _, err := getCmdbData(ctx, *client, query, req.Headers)
-		if err != nil {
-			backend.Logger.Error("error in getting cmdb response", "error", err.Error())
-			return response, fmt.Errorf("error in getting cmdb response. %w", err)
-		}
-		//query.AccountId = cmdbResp.LandingZone
-		vaultResp, vaultStatusCode, _, err := getAwsCredentials(cmdbResp.LandingzoneId, ctx, *client.client, query, req.Headers)
-		//vaultResp, vaultStatusCode, _, err := getAwsCredentials(cmdbResp.LandingzoneId, ctx, *client, query, req.Headers)
-		if err != nil {
-			backend.Logger.Error("error in getting aws credentials", "error", err.Error())
-			return response, fmt.Errorf("error in getting aws credentials. %w", err)
-		}
-		if vaultStatusCode/100 != 2 {
-			backend.Logger.Error("vault error", "error", vaultStatusCode)
-			return response, fmt.Errorf("vault error. %w", vaultStatusCode)
-		}
 
-		vaultString, ok := vaultResp.(string)
-		if !ok {
-			backend.Logger.Error("vault response error", "error")
-			return response, fmt.Errorf("vault response error.")
-		}
-		awsCreds := &models.AwsCredential{}
-		err = json.Unmarshal([]byte(vaultString), &awsCreds)
-		if err != nil {
-			backend.Logger.Error("error un-marshaling the vault response", "error", err.Error())
-			return response, fmt.Errorf("error un-marshaling the vault response. %w", err)
-		}
-		query.Region = awsCreds.Region
 		switch query.Type {
 		case models.QueryTypeAppKubeCloudWatch:
+			awsCreds, dataResponse, err2 := createAwsCreds(ctx, req, err, client, query, response)
+			if err2 != nil {
+				return dataResponse, err2
+			}
 			var cloudWatchService = cloudwatch.ProvideService(httpclient.NewProvider(), awsCreds)
-
 			res, err := cloudWatchService.Executor.QueryData(ctx, req, q, awsCreds.Region)
 			if err != nil {
 				backend.Logger.Error("error executing cloudwatch query", "error", err.Error())
 				return response, fmt.Errorf("error executing cloudwatch query. %w", err)
 			}
 			response.Responses[q.RefID] = res.Responses[q.RefID]
-
 		default:
-			res := QueryData(cmdbResp, cmdbStatusCode, ctx, q, *client.client, req.Headers, req.PluginContext)
-			//res := QueryData(cmdbResp, cmdbStatusCode, ctx, q, *client, req.Headers, req.PluginContext)
+			res := QueryData(ctx, q, *client.client, req.Headers, req.PluginContext)
 			response.Responses[q.RefID] = res
 		}
 
@@ -88,7 +58,7 @@ func (ds PluginHost) QueryData(ctx context.Context, req *backend.QueryDataReques
 	return response, nil
 }
 
-func QueryData(cmdbResp any, cmdbStatusCode int, ctx context.Context, backendQuery backend.DataQuery, infClient infinity.Client, requestHeaders map[string]string, pluginContext backend.PluginContext) (response backend.DataResponse) {
+func QueryData(ctx context.Context, backendQuery backend.DataQuery, infClient infinity.Client, requestHeaders map[string]string, pluginContext backend.PluginContext) (response backend.DataResponse) {
 	//region Loading Query
 	query, err := models.LoadQuery(ctx, backendQuery, pluginContext)
 	if err != nil {
@@ -100,21 +70,32 @@ func QueryData(cmdbResp any, cmdbStatusCode int, ctx context.Context, backendQue
 	//region Frame Builder
 	switch query.Type {
 	case models.QueryTypeAppKubeAPI:
-		if cmdbStatusCode/100 == 2 {
-			query.URL = fmt.Sprintf(query.AwsxUrl + query.AccountId)
-			query.Type = "json"
-			query.Parser = "backend"
-			fmt.Println("Appconfig url :" + query.URL)
-			frame, err := infinity.GetFrameForURLSources(ctx, query, infClient, requestHeaders)
-			if err != nil {
-				response.Frames = append(response.Frames, frame)
-				response.Error = fmt.Errorf("error getting data frame from cloud elements. %w", err)
-				return response
-			}
-			if frame != nil {
-				response.Frames = append(response.Frames, frame)
-			}
-
+		query.URL = fmt.Sprintf(query.AwsxUrl + query.AccountId)
+		query.Type = "json"
+		query.Parser = "backend"
+		fmt.Println("Appconfig url :" + query.URL)
+		frame, err := infinity.GetFrameForURLSources(ctx, query, infClient, requestHeaders)
+		if err != nil {
+			response.Frames = append(response.Frames, frame)
+			response.Error = fmt.Errorf("error getting data frame from cloud elements. %w", err)
+			return response
+		}
+		if frame != nil {
+			response.Frames = append(response.Frames, frame)
+		}
+	case models.QueryTypeAppKubeMetrics:
+		query.URL = fmt.Sprintf("http://localhost:7008/awsx-metric/metric")
+		query.Type = "json"
+		query.Parser = "backend"
+		fmt.Println("appkube-metrics api url :" + query.URL)
+		frame, err := infinity.GetFrameForURLSources(ctx, query, infClient, requestHeaders)
+		if err != nil {
+			response.Frames = append(response.Frames, frame)
+			response.Error = fmt.Errorf("error getting data frame from cloud elements. %w", err)
+			return response
+		}
+		if frame != nil {
+			response.Frames = append(response.Frames, frame)
 		}
 	case models.QueryTypeGSheets:
 		sheetId := query.Spreadsheet
@@ -180,20 +161,42 @@ func QueryData(cmdbResp any, cmdbStatusCode int, ctx context.Context, backendQue
 	return response
 }
 
+func createAwsCreds(ctx context.Context, req *backend.QueryDataRequest, err error, client *instanceSettings, query models.Query, response *backend.QueryDataResponse) (*models.AwsCredential, *backend.QueryDataResponse, error) {
+	cmdbResp, cmdbStatusCode, _, err := getCmdbData(ctx, *client.client, query, req.Headers)
+	if err != nil {
+		backend.Logger.Error("error in getting cmdb response", "error", err.Error())
+		return nil, response, fmt.Errorf("error in getting cmdb response. %w", err)
+	}
+	if cmdbStatusCode > http.StatusBadRequest {
+		backend.Logger.Error("cmdb api failed. status: "+strconv.Itoa(cmdbStatusCode), "error", err.Error())
+		return nil, response, fmt.Errorf("cmdb api failed. status: "+strconv.Itoa(cmdbStatusCode)+". %w", err)
+	}
+	vaultResp, vaultStatusCode, _, err := getAwsCredentials(cmdbResp.LandingzoneId, ctx, *client.client, query, req.Headers)
+	if err != nil {
+		backend.Logger.Error("error in getting aws credentials", "error", err.Error())
+		return nil, response, fmt.Errorf("error in getting aws credentials. %w", err)
+	}
+	if vaultStatusCode/100 != 2 {
+		backend.Logger.Error("vault error", "error", vaultStatusCode)
+		return nil, response, fmt.Errorf("vault error. %w", vaultStatusCode)
+	}
+
+	vaultString, ok := vaultResp.(string)
+	if !ok {
+		backend.Logger.Error("vault response error", "error")
+		return nil, response, fmt.Errorf("vault response error.")
+	}
+	awsCreds := &models.AwsCredential{}
+	err = json.Unmarshal([]byte(vaultString), &awsCreds)
+	if err != nil {
+		backend.Logger.Error("error un-marshaling the vault response", "error", err.Error())
+		return nil, response, fmt.Errorf("error un-marshaling the vault response. %w", err)
+	}
+	query.Region = awsCreds.Region
+	return awsCreds, nil, nil
+}
 func getCmdbData(ctx context.Context, infClient infinity.Client, query models.Query, requestHeaders map[string]string) (o *models.CmdbCloudElementResponse, statusCode int, duration time.Duration, err error) {
 	fmt.Println("Query CMDB to get landing zone")
-	//productId := query.ProductId
-	//environmentId := query.ElementId
-	//moduleId := query.ModuleId
-	//serviceId := query.ServiceId
-	//accountId := query.AccountId
-	//sOpt := fmt.Sprintf("productId=%d&deploymentEnvironmentId=%d&moduleId=%d&servicesId=%d", productId, environmentId, moduleId, serviceId)
-	//backend.Logger.Info("sOpt: " + sOpt)
-	//backend.Logger.Info("Account id: " + accountId)
-
-	//query.URL = query.CmdbUrl
-	//query.URL = query.CmdbUrl + "?" + sOpt
-	//query.URL = "http://34.199.12.114:5057/api/service-allocations/search?productId=1&deploymentEnvironmentId=2&moduleId=2&servicesId=2"
 	query.URL = "http://34.199.12.114:6057/api/cloud-element/search?id=" + strconv.Itoa(int(query.ElementId))
 	backend.Logger.Info("CMDB URL: " + query.URL)
 
@@ -204,7 +207,6 @@ func getCmdbData(ctx context.Context, infClient infinity.Client, query models.Qu
 	}
 
 	cmdbByte := []byte(cmdbResp.(string))
-	//var out []models.CmdbProductEnvModuleService
 	var out []*models.CmdbCloudElementResponse
 	er := json.Unmarshal(cmdbByte, &out)
 	if er != nil {
@@ -218,9 +220,6 @@ func getCmdbData(ctx context.Context, infClient infinity.Client, query models.Qu
 }
 func getAwsCredentials(landingZoneId int64, ctx context.Context, infClient infinity.Client, query models.Query, requestHeaders map[string]string) (o any, statusCode int, duration time.Duration, err error) {
 	fmt.Println("Query vault to get aws credentials")
-	//environmentId := query.EnvironmentId
-	//query.URL = query.VaultUrl + "/" + query.AccountId
-	//query.URL = fmt.Sprintf("http://34.199.12.114:5057/api/vault/accountId/%s", query.AccountId)
 	query.URL = "http://34.199.12.114:6057/api/landingzone/cloud-creds?landingZoneId=" + strconv.Itoa(int(landingZoneId))
 	backend.Logger.Info("VAULT URL: " + query.URL)
 	return infClient.GetResults(ctx, query, requestHeaders)

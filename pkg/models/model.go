@@ -69,6 +69,7 @@ const (
 	QueryTypeGSheets           QueryType = "google-sheets"
 	QueryTypeAppKubeAPI        QueryType = "appkube-api"
 	QueryTypeAppKubeCloudWatch QueryType = "appkube-cloudwatch"
+	QueryTypeAppKubeMetrics    QueryType = "appkube-metrics"
 )
 
 type InfinityParser string
@@ -288,10 +289,16 @@ func ApplyDefaultsToQuery(ctx context.Context, query Query) Query {
 
 func LoadQuery(ctx context.Context, backendQuery backend.DataQuery, pluginContext backend.PluginContext) (Query, error) {
 	var query Query
+
+	if backendQuery.JSON == nil {
+		return query, fmt.Errorf("backendQuery is nil")
+	}
+
 	err := json.Unmarshal(backendQuery.JSON, &query)
 	if err != nil {
-		return query, fmt.Errorf("error while parsing the query json. %s", err.Error())
+		return query, fmt.Errorf("error while parsing the query json: %s", err.Error())
 	}
+
 	query = ApplyDefaultsToQuery(ctx, query)
 	return ApplyMacros(ctx, query, backendQuery.TimeRange, pluginContext)
 }
