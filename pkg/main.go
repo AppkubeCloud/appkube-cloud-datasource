@@ -191,7 +191,7 @@ func testAppkubeMetricsAPIcall() {
    "type": "appkube-metrics",
    "url_options": {
       "method": "POST",
-      "data": "{\"zone\":\"us-east-1\",\"accessKey\":\"<accessKey>\",\"secretKey\":\"<secretKey>\",\"externalId\":\"<externalId>\",\"crossAccountRoleArn\":\"<crossAccountRoleArn>,\"MaxDataPoint\": 100,\"Interval\": 60,\"TimeRange\": {\"From\": \"\",\"To\": \"\",\"TimeZone\": \"UTC\"},\"Query\": [{\"Namespace\": \"AWS/EC2\",\"MetricName\": \"CPUUtilization\",\"Period\": 300,\"Stat\": \"Average\",\"Dimensions\": [{\"Name\": \"InstanceId\",\"Value\": \"i-05e4e6757f13da657\"}]}]}]}"
+      "data": "{\"zone\":\"us-east-1\",\"externalId\":\"DJ6@a8hzG@xkFwSvLmkSR5SN\",\"crossAccountRoleArn\":\"arn:aws:iam::657907747545:role/CrossAccount\",\"cloudWatchQueries\":[{\"RefID\": \"A\",\"MaxDataPoint\": 100,\"Interval\": 60,\"TimeRange\": {\"From\": \"\",\"To\": \"\",\"TimeZone\": \"UTC\"},\"Query\": [{\"Namespace\": \"AWS/EC2\",\"MetricName\": \"CPUUtilization\",\"Period\": 300,\"Stat\": \"Average\",\"Dimensions\": [{\"Name\": \"InstanceId\",\"Value\": \"i-05e4e6757f13da657\"}]}]}]}"
    }
 }
 
