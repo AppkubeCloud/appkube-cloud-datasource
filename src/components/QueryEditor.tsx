@@ -27,7 +27,7 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
           "elementId": parseInt(id, 10),
           "cloudIdentifierName": cloudElement.instanceName,
           "cloudIdentifierId": cloudElement.instanceId,
-          "type": "appkube-cloudwatch",
+          "type": "appkube-metrics",
           "queryMode": "Metrics",
           "source": "url",
           "productId": 1,
