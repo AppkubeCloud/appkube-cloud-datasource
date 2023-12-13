@@ -10,15 +10,16 @@ import { Metric } from './EditorComponents/Metric';
 import { Log } from './EditorComponents/Log';
 import { Trace } from './EditorComponents/Trace';
 import { Api } from './EditorComponents/Api';
-import { services } from '../service';
+import { Services } from '../service';
 
-export function QueryEditor({ query, onChange, onRunQuery }: any) {
+export function QueryEditor({ query, onChange, onRunQuery, datasource }: any) {
+  const service = new Services(datasource.meta.jsonData.cmdbEndpoint || "", datasource.meta.jsonData.grafanaEndpoint || "");
   const [elementId, setElementId] = useState("");
   const [metricsList, setMetricsList] = useState([]);
   const onChanged = useRef(false);
 
   const getCloudElements = useCallback((id: string, query: any) => {
-    services.getCloudElements(id).then((res) => {
+    service.getCloudElements(id).then((res) => {
       if (res && res[0]) {
         const cloudElement = res[0];
         query = {
@@ -50,7 +51,7 @@ export function QueryEditor({ query, onChange, onRunQuery }: any) {
           "region": ""
         };
         onChange({ ...query });
-        services.getMetricsList(res[0].elementType).then((res) => {
+        service.getMetricsList(res[0].elementType).then((res) => {
           setMetricsList(res);
         });
       }

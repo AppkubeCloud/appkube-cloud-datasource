@@ -1,12 +1,15 @@
 import { DataSourceInstanceSettings, CoreApp, DataQueryRequest, DataQueryResponse } from '@grafana/data';
 import { DataSourceWithBackend } from '@grafana/runtime';
-import { services } from './service';
+import { Services } from './service';
 import { MyQuery, MyDataSourceOptions, DEFAULT_QUERY } from './types';
 import { Observable, from, mergeMap } from 'rxjs';
 
 export class DataSource extends DataSourceWithBackend<MyQuery, MyDataSourceOptions> {
+  service;
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
     super(instanceSettings);
+    this.service = new Services(instanceSettings.jsonData.cmdbEndpoint || "", instanceSettings.jsonData.grafanaEndpoint || "");
+    instanceSettings.meta.jsonData = JSON.parse(JSON.stringify(instanceSettings.jsonData));
   }
 
   findParam(paramName: string, url: string) {
@@ -21,7 +24,7 @@ export class DataSource extends DataSourceWithBackend<MyQuery, MyDataSourceOptio
   }
 
   getCloudElements(id: string) {
-    return from(services.getCloudElements(id).then(res => {
+    return from(this.service.getCloudElements(id).then(res => {
       let query = {};
       if (res && res[0]) {
         const cloudElement = res[0];
