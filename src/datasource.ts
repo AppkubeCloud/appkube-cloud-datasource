@@ -44,16 +44,6 @@ export class DataSource extends DataSourceWithBackend<MyQuery, MyDataSourceOptio
   query(request: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
     const id = this.findParam("var-elementId", window.location.href);
     if (id) {
-      // return this.getCloudElements(id).pipe(query => {
-      //   let targets = request.targets;
-      //   for (let i = 0; i < targets.length; i++) {
-      //     targets[i] = {
-      //       ...targets[i],
-      //       ...query
-      //     }
-      //   }
-      //   return super.query(request);
-      // });
       return this.getCloudElements(id).pipe(
         mergeMap((query: object) => {
           let targets = request.targets;

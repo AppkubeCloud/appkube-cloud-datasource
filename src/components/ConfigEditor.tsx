@@ -8,10 +8,10 @@ interface Props extends DataSourcePluginOptionsEditorProps<MyDataSourceOptions> 
 export function ConfigEditor(props: Props) {
   const { onOptionsChange, options } = props;
 
-  const onPathChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const onGrafanaEndPoint = (event: ChangeEvent<HTMLInputElement>) => {
     const jsonData = {
       ...options.jsonData,
-      path: event.target.value,
+      grafanaEndpoint: event.target.value,
     };
     onOptionsChange({ ...options, jsonData });
   };
@@ -19,7 +19,7 @@ export function ConfigEditor(props: Props) {
   const onAPIEndPointChange = (event: ChangeEvent<HTMLInputElement>) => {
     const jsonData = {
       ...options.jsonData,
-      apiEndpoint: event.target.value,
+      cmdbEndpoint: event.target.value,
     };
     onOptionsChange({ ...options, jsonData });
   };
@@ -54,11 +54,11 @@ export function ConfigEditor(props: Props) {
 
   return (
     <div className="gf-form-group">
-      <InlineField label="Path" labelWidth={12}>
+      <InlineField label="Grafana Endpoint" labelWidth={24}>
         <Input
-          onChange={onPathChange}
-          value={jsonData.path || ''}
-          placeholder="json field returned to frontend"
+          onChange={onGrafanaEndPoint}
+          value={jsonData.grafanaEndpoint || ''}
+          placeholder="http://localhost:3001"
           width={40}
         />
       </InlineField>
@@ -72,11 +72,11 @@ export function ConfigEditor(props: Props) {
           onChange={onAPIKeyChange}
         />
       </InlineField> */}
-      <InlineField label="API Endpoint" labelWidth={12}>
+      <InlineField label="CMDB API Endpoint" labelWidth={24}>
         <Input
           onChange={onAPIEndPointChange}
-          value={jsonData.apiEndpoint || ''}
-          placeholder="API Endpoint"
+          value={jsonData.cmdbEndpoint || ''}
+          placeholder="https://api.synectiks.net/cmdb"
           width={40}
         />
       </InlineField>
