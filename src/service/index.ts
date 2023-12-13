@@ -1,6 +1,6 @@
-const BASE_URL = "http://34.199.12.114:6057";
+const BASE_URL = "https://api.synectiks.net/cmdb";
 const APPKUBE_URL="http://localhost:3001"
-const GET_CLOUD_ELEMENT = "/api/cloud-element/search";
+const GET_CLOUD_ELEMENT = "/cloud-element/search";
 const GET_METRICS_LIST = "/api/datasources/aws-namespace";
 
 export const services = {
