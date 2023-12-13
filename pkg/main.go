@@ -7,6 +7,9 @@ import (
 	"github.com/appkube/cloud-datasource/pkg/models"
 	"github.com/appkube/cloud-datasource/pkg/pluginhost"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
+	"github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
+	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
+	"os"
 	"time"
 )
 
@@ -27,14 +30,14 @@ func main() {
 	//}
 
 	//new code. Need this code only
-	//err := datasource.Serve(pluginhost.NewDatasource())
-	//if err != nil {
-	//	log.DefaultLogger.Error(err.Error())
-	//	os.Exit(1)
-	//}
+	err := datasource.Serve(pluginhost.NewDatasource())
+	if err != nil {
+		log.DefaultLogger.Error(err.Error())
+		os.Exit(1)
+	}
 	//testCloudwatchMetrics()
 	//testCloudWatchLogs()
-	testAppkubeMetricsAPIcall()
+	//testAppkubeMetricsAPIcall()
 }
 
 func testCloudwatchMetrics() {
