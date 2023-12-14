@@ -56,7 +56,7 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: any) {
         });
       }
     });
-  }, [onChange]);
+  }, [onChange]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (onChanged.current === false) {
