@@ -88,6 +88,13 @@ func QueryData(ctx context.Context, backendQuery backend.DataQuery, infClient in
 		query.Type = "json"
 		query.Parser = "backend"
 		fmt.Println("appkube-metrics api url :" + query.URL)
+		//query.URLOptions.Method = "POST"
+		urlOpt := models.URLOptions{
+			Method: "Post",
+			Body:   "{\"zone\":\"us-east-1\",\"externalId\":\"DJ6@a8hzG@xkFwSvLmkSR5SN\",\"crossAccountRoleArn\":\"arn:aws:iam::657907747545:role/CrossAccount\",\"cloudWatchQueries\":[{\"RefID\": \"A\",\"MaxDataPoint\": 100,\"Interval\": 60,\"TimeRange\": {\"From\": \"\",\"To\": \"\",\"TimeZone\": \"UTC\"},\"Query\": [{\"Namespace\": \"AWS/EC2\",\"MetricName\": \"CPUUtilization\",\"Period\": 300,\"Stat\": \"Average\",\"Dimensions\": [{\"Name\": \"InstanceId\",\"Value\": \"i-05e4e6757f13da657\"}]}]}]}",
+		}
+		query.URLOptions = urlOpt
+
 		frame, err := infinity.GetFrameForURLSources(ctx, query, infClient, requestHeaders)
 		if err != nil {
 			response.Frames = append(response.Frames, frame)
