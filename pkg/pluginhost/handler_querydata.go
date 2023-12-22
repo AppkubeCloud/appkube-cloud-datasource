@@ -84,16 +84,60 @@ func QueryData(ctx context.Context, backendQuery backend.DataQuery, infClient in
 			response.Frames = append(response.Frames, frame)
 		}
 	case models.QueryTypeAppKubeMetrics:
-		query.URL = fmt.Sprintf("http://localhost:7008/awsx-metric/metric")
+		apiUrl := fmt.Sprintf("http://localhost:7008/awsx-metric/metric")
+		fmt.Println("appkube-metrics api url :" + apiUrl)
+		type TimeRange struct {
+			From     string `json:"From"`
+			To       string `json:"To"`
+			TimeZone string `json:"TimeZone"`
+		}
+		type Dimension struct {
+			Name  string `json:"Name"`
+			Value string `json:"Value"`
+		}
+		type Query struct {
+			Namespace  string      `json:"Namespace"`
+			MetricName string      `json:"MetricName"`
+			Period     int         `json:"Period"`
+			Stat       string      `json:"Stat"`
+			Dimensions []Dimension `json:"Dimensions"`
+		}
+		type InnerQuery struct {
+			RefID        string    `json:"refID"`
+			MaxDataPoint int64     `json:"maxDataPoint"`
+			Interval     int64     `json:"interval"`
+			TimeRange    TimeRange `json:"TimeRange"`
+			Query        []Query   `json:"Query"`
+		}
+		type TopQuery struct {
+			Zone                string       `json:"zone"`
+			ExternalId          string       `json:"externalId"`
+			CrossAccountRoleArn string       `json:"crossAccountRoleArn"`
+			CloudWatchQueries   []InnerQuery `json:"cloudWatchQueries"`
+		}
+		//periodInt, err := strconv.Atoi(query.Period)
+		//if err != nil {
+		//	fmt.Println("Error parsing period:", err)
+		//}
+
+		timeRange := TimeRange{From: "", To: "", TimeZone: "UTC"}
+		dimension := Dimension{Name: "InstanceId", Value: "i-05e4e6757f13da657"}
+		ofQuery := Query{Namespace: "AWS/" + query.Namespace, MetricName: query.MetricName, Period: 300, Stat: *query.Statistic, Dimensions: []Dimension{dimension}}
+		innerQuery := InnerQuery{RefID: query.RefID, MaxDataPoint: 100, Interval: 60, TimeRange: timeRange, Query: []Query{ofQuery}}
+		topQuery := TopQuery{Zone: "us-east-1", ExternalId: "DJ6@a8hzG@xkFwSvLmkSR5SN", CrossAccountRoleArn: "arn:aws:iam::657907747545:role/CrossAccount", CloudWatchQueries: []InnerQuery{innerQuery}}
+		body, err := json.Marshal(topQuery)
+		if err != nil {
+
+		}
+		urlOptions := models.URLOptions{
+			Method: "Post",
+			Body:   string(body),
+		}
+
+		query.URL = apiUrl
 		query.Type = "json"
 		query.Parser = "backend"
-		fmt.Println("appkube-metrics api url :" + query.URL)
-		//query.URLOptions.Method = "POST"
-		urlOpt := models.URLOptions{
-			Method: "Post",
-			Body:   "{\"zone\":\"us-east-1\",\"externalId\":\"DJ6@a8hzG@xkFwSvLmkSR5SN\",\"crossAccountRoleArn\":\"arn:aws:iam::657907747545:role/CrossAccount\",\"cloudWatchQueries\":[{\"RefID\": \"A\",\"MaxDataPoint\": 100,\"Interval\": 60,\"TimeRange\": {\"From\": \"\",\"To\": \"\",\"TimeZone\": \"UTC\"},\"Query\": [{\"Namespace\": \"AWS/EC2\",\"MetricName\": \"CPUUtilization\",\"Period\": 300,\"Stat\": \"Average\",\"Dimensions\": [{\"Name\": \"InstanceId\",\"Value\": \"i-05e4e6757f13da657\"}]}]}]}",
-		}
-		query.URLOptions = urlOpt
+		query.URLOptions = urlOptions
 
 		frame, err := infinity.GetFrameForURLSources(ctx, query, infClient, requestHeaders)
 		if err != nil {
@@ -101,9 +145,136 @@ func QueryData(ctx context.Context, backendQuery backend.DataQuery, infClient in
 			response.Error = fmt.Errorf("error getting data frame from cloud elements. %w", err)
 			return response
 		}
-		if frame != nil {
-			response.Frames = append(response.Frames, frame)
+		newFrame := data.NewFrame("responce_frame")
+
+		//newFrame := data.Frame{
+		//	Name: "response_frame",
+		//	//Fields: []*data.Field{
+		//	//	timeField,
+		//	//	valueField,
+		//	//},
+		//	////RefID: query.RefID,
+		//	////Meta:
+		//}
+		if frame.Meta != nil && frame.Meta.Custom != nil {
+			metaJSON, err := frame.MarshalJSON()
+			if err != nil {
+				panic(err)
+			}
+
+			var customData map[string]interface{}
+			if err := json.Unmarshal(metaJSON, &customData); err != nil {
+				panic(err)
+			}
+			layout := "2006-01-02T15:04:05Z"
+			if schemaVal, ok := customData["schema"]; ok {
+				if schema, ok := schemaVal.(map[string]interface{}); ok {
+					if metaVal, ok := schema["meta"]; ok {
+						if meta, ok := metaVal.(map[string]interface{}); ok {
+							if metaVal, ok := meta["custom"]; ok {
+								if customMap, ok := metaVal.(map[string]interface{}); ok {
+									fmt.Println("Value is a map:", customMap)
+									customMap, _ := customMap["data"].(map[string]interface{})
+									if metricData, ok := customMap["MetricDataResults"]; ok {
+										if metrics, ok := metricData.([]interface{}); ok && len(metrics) > 0 {
+											timestamps := []*time.Time{}
+											points := []*float64{}
+											for _, mt := range metrics {
+												if metric, ok := mt.(map[string]interface{}); ok {
+													tm, _ := metric["Timestamps"].([]interface{})
+													val, _ := metric["Values"].([]interface{})
+													for _, t := range tm {
+														// Parse the input string into a time.Time object
+														parsedTime, _ := time.Parse(layout, t.(string))
+														//milliseconds := parsedTime.UnixNano() / int64(time.Millisecond)
+														timestamps = append(timestamps, &parsedTime)
+														//if v, ok := t.(time.Time); ok {
+														//	timestamps = append(timestamps, &parsedTime)
+														//}
+													}
+													for _, v := range val {
+														if value, ok := v.(float64); ok {
+															points = append(points, &value)
+														}
+													}
+												}
+											}
+
+											timeField := data.NewField(data.TimeSeriesTimeFieldName, nil, timestamps)
+											valueField := data.NewField(data.TimeSeriesValueFieldName, nil, points)
+											//newFrame := data.Frame{
+											//	Name: "response_frame",
+											//	Fields: []*data.Field{
+											//		timeField,
+											//		valueField,
+											//	},
+											//	//RefID: query.RefID,
+											//	//Meta:
+											//}
+											newFrame.Fields = []*data.Field{
+												timeField,
+												valueField,
+											}
+
+											//dynamicFields := []*data.Field{}
+											//if metric, ok := metrics[0].(map[string]interface{}); ok {
+											//	timestamps, _ := metric["Timestamps"].([]interface{})
+											//	for i, timestamp := range timestamps {
+											//		if ts, ok := timestamp.(string); ok {
+											//			fmt.Printf("%d: %s\n", i, ts)
+											//		} else {
+											//			fmt.Printf("%d: Unable to convert timestamp to string\n", i)
+											//		}
+											//	}
+											//	values, _ := metric["Values"].([]interface{})
+											//	for i, value := range values {
+											//		if v, ok := value.(float64); ok {
+											//			fmt.Printf("%d: %.2f\n", i, v)
+											//		} else {
+											//			fmt.Printf("%d: Unable to convert value to float64\n", i)
+											//		}
+											//	}
+											//
+											//}
+											//else {
+											//	fmt.Println("The first element of 'MetricDataResults' is not a map[string]interface{}")
+											//}
+										} else {
+											fmt.Println("The value of 'MetricDataResults' is not a slice with at least one element")
+										}
+									} else {
+										fmt.Println("Value of 'MetricDataResults' key is not a map[string]interface{}")
+									}
+								} else {
+									fmt.Println("Value of 'custom' key is not a map[string]interface{}")
+								}
+							} else {
+								fmt.Println("Key 'custom' not found in the meta map")
+							}
+						} else {
+							fmt.Println("Value of 'meta' key is not a map[string]interface{}")
+						}
+					} else {
+						fmt.Println("Key 'meta' not found in 'schema'")
+					}
+				} else {
+					fmt.Println("Value of 'schema' key is not a map[string]interface{}")
+				}
+			} else {
+				fmt.Println("Key 'schema' not found in the data")
+			}
 		}
+
+		//if frame != nil {
+		//	frame := &data.Frame{
+		//		Name: "response_frame",
+		//		Fields: []*data.Field{
+		//			data.NewField("time", nil, parseTimeSlice([]string{"1703035130046"})),
+		//			data.NewField("value", nil, []float64{35.67976477575323}),
+		//		},
+		//	}
+		response.Frames = append(response.Frames, newFrame)
+		//}
 	case models.QueryTypeGSheets:
 		sheetId := query.Spreadsheet
 		sheetName := query.SheetName
