@@ -8,6 +8,14 @@ interface Props extends DataSourcePluginOptionsEditorProps<MyDataSourceOptions> 
 export function ConfigEditor(props: Props) {
   const { onOptionsChange, options } = props;
 
+  const onAwsxAPIEndpoint = (event: ChangeEvent<HTMLInputElement>) => {
+    const jsonData = {
+      ...options.jsonData,
+      awsxEndPoint: event.target.value,
+    };
+    onOptionsChange({ ...options, jsonData });
+  };
+
   const onGrafanaEndPoint = (event: ChangeEvent<HTMLInputElement>) => {
     const jsonData = {
       ...options.jsonData,
@@ -76,6 +84,14 @@ export function ConfigEditor(props: Props) {
         <Input
           onChange={onAPIEndPointChange}
           value={jsonData.cmdbEndpoint || ''}
+          placeholder="https://api.synectiks.net/cmdb"
+          width={40}
+        />
+      </InlineField>
+      <InlineField label="AWSX API Endpoint" labelWidth={24}>
+        <Input
+          onChange={onAwsxAPIEndpoint}
+          value={jsonData.awsxEndPoint || ''}
           placeholder="https://api.synectiks.net/cmdb"
           width={40}
         />
