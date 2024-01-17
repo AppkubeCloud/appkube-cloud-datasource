@@ -9,6 +9,7 @@ import (
 	"github.com/appkube/cloud-datasource/pkg/infra/httpclient"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/appkube/cloud-datasource/pkg/infinity"
@@ -69,20 +70,68 @@ func QueryData(ctx context.Context, backendQuery backend.DataQuery, infClient in
 	//endregion
 	//region Frame Builder
 	switch query.Type {
+	//case models.QueryTypeAppKubeAPI:
+	//query.URL = fmt.Sprintf(query.AwsxUrl + query.AccountId)
+	//query.Type = "json"
+	//query.Parser = "backend"
+	//fmt.Println("Appconfig url :" + query.URL)
+	//frame, err := infinity.GetFrameForURLSources(ctx, query, infClient, requestHeaders)
+	//if err != nil {
+	//	response.Frames = append(response.Frames, frame)
+	//	response.Error = fmt.Errorf("error getting data frame from cloud elements. %w", err)
+	//	return response
+	//}
+	//if frame != nil {
+	//	response.Frames = append(response.Frames, frame)
+	//}
 	case models.QueryTypeAppKubeAPI:
-		query.URL = fmt.Sprintf(query.AwsxUrl + query.AccountId)
-		query.Type = "json"
+		//apiUrl := fmt.Sprintf("http://localhost:7000/awsx-api/getQueryOutput")
+		//apiUrl := fmt.Sprintf(query.AwsxUrl)
+		query.Type = "url"
 		query.Parser = "backend"
-		fmt.Println("Appconfig url :" + query.URL)
+		query.URL = query.AwsxUrl
+		fmt.Println("Appkube awsx url :" + query.URL)
+		urlOptions := models.URLOptions{
+			Method: "Get",
+			Params: []models.URLOptionKeyValuePair{
+				{"responseType", strings.ToLower(query.ResponseType)},
+				{"zone", query.Zone},
+				{"externalId", query.ExternalId},
+				{"crossAccountRoleArn", query.CrossAccountRoleArn},
+				{"elementType", "AWS/" + query.ElementType},
+				{"elementId", strconv.FormatInt(query.ElementId, 10)},
+				{"instanceID", query.CloudIdentifierId},
+				{"query", query.QueryString},
+
+				//{"responseType", "frame"},
+				//{"zone", "us-east-1"},
+				//{"externalId", ""},
+				//{"crossAccountRoleArn", "arn:aws:iam::<accountId>:role/CrossAccount"},
+				//{"elementType", "AWS/EC2"},
+				//{"instanceID", "i-05e4e6757f13da657"},
+				//{"query", "cpu_utilization_panel"},
+				//{"statistic", "SampleCount"},
+			},
+		}
+
+		query.URLOptions = urlOptions
 		frame, err := infinity.GetFrameForURLSources(ctx, query, infClient, requestHeaders)
 		if err != nil {
 			response.Frames = append(response.Frames, frame)
 			response.Error = fmt.Errorf("error getting data frame from cloud elements. %w", err)
 			return response
 		}
-		if frame != nil {
+		//responseType := "json"
+		if query.ResponseType == "json" {
 			response.Frames = append(response.Frames, frame)
+		} else if query.ResponseType == `frame` {
+			responseFrame, err := createResponseFrame(frame)
+			if err != nil {
+				return backend.DataResponse{}
+			}
+			response.Frames = append(response.Frames, responseFrame)
 		}
+
 	case models.QueryTypeAppKubeMetrics:
 		apiUrl := fmt.Sprintf("http://localhost:7008/awsx-metric/metric")
 		fmt.Println("appkube-metrics api url :" + apiUrl)
@@ -115,11 +164,6 @@ func QueryData(ctx context.Context, backendQuery backend.DataQuery, infClient in
 			CrossAccountRoleArn string       `json:"crossAccountRoleArn"`
 			CloudWatchQueries   []InnerQuery `json:"cloudWatchQueries"`
 		}
-		//periodInt, err := strconv.Atoi(query.Period)
-		//if err != nil {
-		//	fmt.Println("Error parsing period:", err)
-		//}
-
 		timeRange := TimeRange{From: "", To: "", TimeZone: "UTC"}
 		dimension := Dimension{Name: "InstanceId", Value: "i-05e4e6757f13da657"}
 		ofQuery := Query{Namespace: "AWS/" + query.Namespace, MetricName: query.MetricName, Period: 300, Stat: *query.Statistic, Dimensions: []Dimension{dimension}}
@@ -145,136 +189,12 @@ func QueryData(ctx context.Context, backendQuery backend.DataQuery, infClient in
 			response.Error = fmt.Errorf("error getting data frame from cloud elements. %w", err)
 			return response
 		}
-		newFrame := data.NewFrame("responce_frame")
-
-		//newFrame := data.Frame{
-		//	Name: "response_frame",
-		//	//Fields: []*data.Field{
-		//	//	timeField,
-		//	//	valueField,
-		//	//},
-		//	////RefID: query.RefID,
-		//	////Meta:
-		//}
-		if frame.Meta != nil && frame.Meta.Custom != nil {
-			metaJSON, err := frame.MarshalJSON()
-			if err != nil {
-				panic(err)
-			}
-
-			var customData map[string]interface{}
-			if err := json.Unmarshal(metaJSON, &customData); err != nil {
-				panic(err)
-			}
-			layout := "2006-01-02T15:04:05Z"
-			if schemaVal, ok := customData["schema"]; ok {
-				if schema, ok := schemaVal.(map[string]interface{}); ok {
-					if metaVal, ok := schema["meta"]; ok {
-						if meta, ok := metaVal.(map[string]interface{}); ok {
-							if metaVal, ok := meta["custom"]; ok {
-								if customMap, ok := metaVal.(map[string]interface{}); ok {
-									fmt.Println("Value is a map:", customMap)
-									customMap, _ := customMap["data"].(map[string]interface{})
-									if metricData, ok := customMap["MetricDataResults"]; ok {
-										if metrics, ok := metricData.([]interface{}); ok && len(metrics) > 0 {
-											timestamps := []*time.Time{}
-											points := []*float64{}
-											for _, mt := range metrics {
-												if metric, ok := mt.(map[string]interface{}); ok {
-													tm, _ := metric["Timestamps"].([]interface{})
-													val, _ := metric["Values"].([]interface{})
-													for _, t := range tm {
-														// Parse the input string into a time.Time object
-														parsedTime, _ := time.Parse(layout, t.(string))
-														//milliseconds := parsedTime.UnixNano() / int64(time.Millisecond)
-														timestamps = append(timestamps, &parsedTime)
-														//if v, ok := t.(time.Time); ok {
-														//	timestamps = append(timestamps, &parsedTime)
-														//}
-													}
-													for _, v := range val {
-														if value, ok := v.(float64); ok {
-															points = append(points, &value)
-														}
-													}
-												}
-											}
-
-											timeField := data.NewField(data.TimeSeriesTimeFieldName, nil, timestamps)
-											valueField := data.NewField(data.TimeSeriesValueFieldName, nil, points)
-											//newFrame := data.Frame{
-											//	Name: "response_frame",
-											//	Fields: []*data.Field{
-											//		timeField,
-											//		valueField,
-											//	},
-											//	//RefID: query.RefID,
-											//	//Meta:
-											//}
-											newFrame.Fields = []*data.Field{
-												timeField,
-												valueField,
-											}
-
-											//dynamicFields := []*data.Field{}
-											//if metric, ok := metrics[0].(map[string]interface{}); ok {
-											//	timestamps, _ := metric["Timestamps"].([]interface{})
-											//	for i, timestamp := range timestamps {
-											//		if ts, ok := timestamp.(string); ok {
-											//			fmt.Printf("%d: %s\n", i, ts)
-											//		} else {
-											//			fmt.Printf("%d: Unable to convert timestamp to string\n", i)
-											//		}
-											//	}
-											//	values, _ := metric["Values"].([]interface{})
-											//	for i, value := range values {
-											//		if v, ok := value.(float64); ok {
-											//			fmt.Printf("%d: %.2f\n", i, v)
-											//		} else {
-											//			fmt.Printf("%d: Unable to convert value to float64\n", i)
-											//		}
-											//	}
-											//
-											//}
-											//else {
-											//	fmt.Println("The first element of 'MetricDataResults' is not a map[string]interface{}")
-											//}
-										} else {
-											fmt.Println("The value of 'MetricDataResults' is not a slice with at least one element")
-										}
-									} else {
-										fmt.Println("Value of 'MetricDataResults' key is not a map[string]interface{}")
-									}
-								} else {
-									fmt.Println("Value of 'custom' key is not a map[string]interface{}")
-								}
-							} else {
-								fmt.Println("Key 'custom' not found in the meta map")
-							}
-						} else {
-							fmt.Println("Value of 'meta' key is not a map[string]interface{}")
-						}
-					} else {
-						fmt.Println("Key 'meta' not found in 'schema'")
-					}
-				} else {
-					fmt.Println("Value of 'schema' key is not a map[string]interface{}")
-				}
-			} else {
-				fmt.Println("Key 'schema' not found in the data")
-			}
+		responseFrame, err := createResponseFrame(frame)
+		if err != nil {
+			return backend.DataResponse{}
 		}
 
-		//if frame != nil {
-		//	frame := &data.Frame{
-		//		Name: "response_frame",
-		//		Fields: []*data.Field{
-		//			data.NewField("time", nil, parseTimeSlice([]string{"1703035130046"})),
-		//			data.NewField("value", nil, []float64{35.67976477575323}),
-		//		},
-		//	}
-		response.Frames = append(response.Frames, newFrame)
-		//}
+		response.Frames = append(response.Frames, responseFrame)
 	case models.QueryTypeGSheets:
 		sheetId := query.Spreadsheet
 		sheetName := query.SheetName
@@ -401,4 +321,95 @@ func getAwsCredentials(landingZoneId int64, ctx context.Context, infClient infin
 	query.URL = "http://34.199.12.114:6057/api/landingzone/cloud-creds?landingZoneId=" + strconv.Itoa(int(landingZoneId))
 	backend.Logger.Info("VAULT URL: " + query.URL)
 	return infClient.GetResults(ctx, query, requestHeaders)
+}
+
+func createResponseFrame(frame *data.Frame) (*data.Frame, error) {
+
+	newFrame := data.NewFrame("responce_frame")
+	if frame.Meta != nil && frame.Meta.Custom != nil {
+		metaJSON, err := frame.MarshalJSON()
+		if err != nil {
+			panic(err)
+		}
+
+		var customData map[string]interface{}
+		if err := json.Unmarshal(metaJSON, &customData); err != nil {
+			panic(err)
+		}
+		layout := "2006-01-02T15:04:05Z"
+		if schemaVal, ok := customData["schema"]; ok {
+			if schema, ok := schemaVal.(map[string]interface{}); ok {
+				if metaVal, ok := schema["meta"]; ok {
+					if meta, ok := metaVal.(map[string]interface{}); ok {
+						if metaVal, ok := meta["custom"]; ok {
+							if customMap, ok := metaVal.(map[string]interface{}); ok {
+								fmt.Println("Value is a map:", customMap)
+								customMap, _ := customMap["data"].(map[string]interface{})
+								if metricData, ok := customMap["MetricDataResults"]; ok {
+									if metrics, ok := metricData.([]interface{}); ok && len(metrics) > 0 {
+										timestamps := []*time.Time{}
+										points := []*float64{}
+										for _, mt := range metrics {
+											if metric, ok := mt.(map[string]interface{}); ok {
+												tm, _ := metric["Timestamps"].([]interface{})
+												val, _ := metric["Values"].([]interface{})
+												for _, t := range tm {
+													parsedTime, _ := time.Parse(layout, t.(string))
+													timestamps = append(timestamps, &parsedTime)
+												}
+												for _, v := range val {
+													if value, ok := v.(float64); ok {
+														points = append(points, &value)
+													}
+												}
+											}
+										}
+
+										timeField := data.NewField(data.TimeSeriesTimeFieldName, nil, timestamps)
+										valueField := data.NewField(data.TimeSeriesValueFieldName, nil, points)
+										newFrame.Fields = []*data.Field{
+											timeField,
+											valueField,
+										}
+									} else {
+										fmt.Println("The value of 'MetricDataResults' is not a slice with at least one element")
+									}
+								} else {
+									fmt.Println("Value of 'MetricDataResults' key is not a map[string]interface{}")
+								}
+							} else {
+								fmt.Println("Value of 'custom' key is not a map[string]interface{}")
+							}
+						} else {
+							fmt.Println("Key 'custom' not found in the meta map")
+						}
+					} else {
+						fmt.Println("Value of 'meta' key is not a map[string]interface{}")
+					}
+				} else {
+					fmt.Println("Key 'meta' not found in 'schema'")
+				}
+			} else {
+				fmt.Println("Value of 'schema' key is not a map[string]interface{}")
+			}
+		} else {
+			fmt.Println("Key 'schema' not found in the data")
+		}
+	}
+	return newFrame, nil
+}
+
+func GenerateDynamicParams(options []models.URLOptionKeyValuePair) string {
+	params := ""
+
+	for _, option := range options {
+		params += fmt.Sprintf("%s=%s&", option.Key, option.Value)
+	}
+
+	// Remove the trailing "&" if there are parameters
+	if len(params) > 0 {
+		params = params[:len(params)-1]
+	}
+
+	return params
 }

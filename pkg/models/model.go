@@ -70,6 +70,7 @@ const (
 	QueryTypeAppKubeAPI        QueryType = "appkube-api"
 	QueryTypeAppKubeCloudWatch QueryType = "appkube-cloudwatch"
 	QueryTypeAppKubeMetrics    QueryType = "appkube-metrics"
+	QueryTypeCPUUtilization    QueryType = "cpu-utilization"
 )
 
 type InfinityParser string
@@ -164,6 +165,9 @@ type Query struct {
 	Statistics          []*string                `json:"statistics"`
 	TimezoneUTCOffset   string                   `json:"timezoneUTCOffset"`
 	Hide                *bool                    `json:"hide"`
+	ResponseType        string                   `json:"responseType"`
+	CrossAccountRoleArn string                   `json:"crossAccountRoleArn,omitempty"`
+	ExternalId          string                   `json:"externalId,omitempty"`
 }
 
 // It's copied from metric_find_query.go
