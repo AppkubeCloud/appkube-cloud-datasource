@@ -1,21 +1,15 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { InlineField, Select, Input } from '@grafana/ui';
 import {
-  SOURCE_TYPE,
-  SOURCE_VALUE,
-  METRIC_TYPE,
-  MetricEditorMode
+  RESPONSE_TYPE
 } from '../common-ds';
-import { Metric } from './EditorComponents/Metric';
-import { Log } from './EditorComponents/Log';
-import { Trace } from './EditorComponents/Trace';
-import { Api } from './EditorComponents/Api';
+import { EditorRow, EditorRows } from '../extended/EditorRow';
 import { Services } from '../service';
 
 export function QueryEditor({ query, onChange, onRunQuery, datasource }: any) {
   const service = new Services(datasource.meta.jsonData.cmdbEndpoint || "", datasource.meta.jsonData.grafanaEndpoint || "");
   const [elementId, setElementId] = useState("");
-  const [metricsList, setMetricsList] = useState([]);
+  const [supportedPanels, setSupportedPanels] = useState([]);
   const onChanged = useRef(false);
 
   const getCloudElements = useCallback((id: string, query: any) => {
@@ -51,8 +45,8 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: any) {
           "region": ""
         };
         onChange({ ...query });
-        service.getMetricsList(res[0].elementType).then((res) => {
-          setMetricsList(res);
+        service.getSupportedPanels(res[0].elementType).then((res) => {
+          setSupportedPanels(res);
         });
       }
     });
@@ -82,115 +76,66 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: any) {
     return results == null ? "" : results[1];
   }
 
-  const onSourceTypeChange = (value: any) => {
-    if (value === SOURCE_VALUE.METRIC) {
-      query.queryType = 'timeSeriesQuery';
-    } else if (value === SOURCE_VALUE.LOG) {
-      query.queryType = 'logAction';
-    }
-    query.sourceType = value;
-    if (!elementId) {
-      const id = findParam("var-elementId", window.location.href);
-      if (id) {
-        setElementId(id);
-        getCloudElements(id, query);
-      } else {
-        alert("Please set 'elementId' variable");
-      }
-    } else {
-      getCloudElements(elementId, query);
-    }
+  const onChangeElementType = (e: any) => {
+    onChange({ ...query, elementType: e.target.value });
   };
 
-  const onMetricTypeChange = (value: any) => {
-    onChange({ ...query, metricType: value });
+  const onChangeInstanceID = (e: any) => {
+    onChange({ ...query, cloudIdentifierId: e.target.value });
   };
 
-  const onChangeData = (value: any) => {
-    onChange({ ...query, ...value });
+  const onChangeSupportedPanel = (value: any) => {
+    onChange({ ...query, supportedPanel: value });
+  };
+
+  const onChangeResponseType = (value: any) => {
+    onChange({ ...query, supportedPanel: value });
   };
 
   const {
-    sourceType,
-    metricType,
-    metricEditorMode,
+    elementType,
+    cloudIdentifierId,
+    supportedPanel,
+    responseType
   } = query;
-
-  const defaultMetricMode = metricEditorMode ? metricEditorMode : MetricEditorMode.Builder;
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center" }}>
-        <InlineField label="Source Type">
-          <Select
-            className="min-width-12 width-12"
-            value={sourceType}
-            options={SOURCE_TYPE}
-            onChange={(e) => onSourceTypeChange(e.value)}
-            menuShouldPortal={true}
-          />
-        </InlineField>
-        {
-          sourceType === SOURCE_VALUE.METRIC ?
-            <>
-              <InlineField label="Source Type">
-                <Select
-                  className="min-width-12 width-12"
-                  value={metricType}
-                  options={METRIC_TYPE}
-                  onChange={(e) => onMetricTypeChange(e.value)}
-                  menuShouldPortal={true}
-                />
-              </InlineField>
-              <InlineField label="Element ID">
-                <Input disabled={true} value={elementId} />
-              </InlineField>
-              <div style={{ display: "block", flexGrow: "1" }} />
-            </>
-            :
-            <></>
-        }
-      </div>
-      <div>
-        {
-          sourceType === SOURCE_VALUE.METRIC ?
-            <Metric
-              query={query}
-              onChange={onChangeData}
-              editorMode={defaultMetricMode}
-              metricsList={metricsList}
+      <EditorRows>
+        <EditorRow label="">
+          <InlineField label="Element Type">
+            <Input value={elementType} onChange={(e: any) => onChangeElementType(e)} />
+          </InlineField>
+          <InlineField label="Instance ID">
+            <Input value={cloudIdentifierId} onChange={(e: any) => onChangeInstanceID(e)} />
+          </InlineField>
+          <InlineField label="Element ID">
+            <Input disabled={true} value={elementId} />
+          </InlineField>
+        </EditorRow>
+      </EditorRows>
+      <EditorRows>
+        <EditorRow label="">
+          <InlineField label="Supported Panels">
+            <Select
+              className="min-width-12 width-12"
+              value={supportedPanel}
+              options={supportedPanels}
+              onChange={(e) => onChangeSupportedPanel(e.value)}
+              menuShouldPortal={true}
             />
-            :
-            <></>
-        }
-        {
-          sourceType === SOURCE_VALUE.LOG ?
-            <Log
-              query={query}
-              onChange={onChangeData}
+          </InlineField>
+          <InlineField label="Response Type">
+            <Select
+              className="min-width-12 width-12"
+              value={responseType}
+              options={RESPONSE_TYPE}
+              onChange={(e) => onChangeResponseType(e.value)}
+              menuShouldPortal={true}
             />
-            :
-            <></>
-        }
-        {
-          sourceType === SOURCE_VALUE.TRACE ?
-            <Trace
-              query={query}
-              onChange={onChangeData}
-            />
-            :
-            <></>
-        }
-        {
-          sourceType === SOURCE_VALUE.API ?
-            <Api
-              query={query}
-              onChange={onChangeData}
-            />
-            :
-            <></>
-        }
-      </div>
+          </InlineField>
+        </EditorRow>
+      </EditorRows>
     </div>
   );
 }
