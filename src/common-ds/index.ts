@@ -12,3 +12,23 @@ export const METRIC_EDITOR_MODES = [
     { label: 'Builder', value: MetricEditorMode.Builder },
     { label: 'Code', value: MetricEditorMode.Code },
 ];
+
+export const getCloudElementsQuery = function (id: any, cloudElement: any, awsxUrl: string) {
+    return {
+        "cloudIdentifierName": cloudElement.instanceName,
+        "type": "appkube-api",
+        "queryMode": "Metrics",
+        "matchExact": true,
+        "expression": "",
+        "id": "",
+        "alias": "",
+        "period": "",
+        "zone": "",
+        "externalId": "",
+        "crossAccountRoleArn": "",
+        "elementType": cloudElement.elementType,
+        "elementId": parseInt(id, 10),
+        "cloudIdentifierId": cloudElement.instanceId,
+        "awsxUrl": awsxUrl
+    };
+};

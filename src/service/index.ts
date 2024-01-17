@@ -1,11 +1,11 @@
 // const BASE_URL = "https://api.synectiks.net/cmdb";
 // const APPKUBE_URL="http://localhost:3001"
 const GET_CLOUD_ELEMENT = "/cloud-element/search";
-const GET_SUPPORTED_PANELS = "/api/datasources/aws-namespace";
+const GET_SUPPORTED_PANELS = "/cloud-element-supported-api/search";
 
 export class Services {
-    cmdbEndpoint="";
-    grafanaEndpoint="";
+    cmdbEndpoint = "";
+    grafanaEndpoint = "";
     constructor(cmdbEndpoint: string, grafanaEndpoint: string) {
         this.cmdbEndpoint = cmdbEndpoint;
         this.grafanaEndpoint = grafanaEndpoint;
@@ -16,8 +16,8 @@ export class Services {
             .then(response => response.json());
     }
 
-    getSupportedPanels(nameSpace: string) {
-        return fetch(`${this.cmdbEndpoint}${GET_SUPPORTED_PANELS}/${nameSpace}`)
+    getSupportedPanels(elementType: string, cloud: string) {
+        return fetch(`${this.cmdbEndpoint}${GET_SUPPORTED_PANELS}?elementType=${elementType}&cloud=${cloud}`)
             .then(response => response.json());
     }
 }

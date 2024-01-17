@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { InlineField, Select, Input } from '@grafana/ui';
 import {
-  RESPONSE_TYPE
+  RESPONSE_TYPE,
+  getCloudElementsQuery
 } from '../common-ds';
 import { EditorRow, EditorRows } from '../extended/EditorRow';
 import { Services } from '../service';
@@ -13,41 +14,29 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: any) {
   const onChanged = useRef(false);
 
   const getCloudElements = useCallback((id: string, query: any) => {
-    service.getCloudElements(id).then((res) => {
+    service.getCloudElements(id).then((res: any) => {
       if (res && res[0]) {
         const cloudElement = res[0];
-        query = {
-          ...query,
-          "elementType": cloudElement.elementType,
-          "elementId": parseInt(id, 10),
-          "cloudIdentifierName": cloudElement.instanceName,
-          "cloudIdentifierId": cloudElement.instanceId,
-          "type": "appkube-metrics",
-          "queryMode": "Metrics",
-          "source": "url",
-          "productId": 1,
-          "environmentId": parseInt(id, 10),
-          "moduleId": 2,
-          "serviceId": 2,
-          "serviceType": "java app service",
-          "cmdbUrl": "",
-          "vaultUrl": "",
-          "namespace": cloudElement.elementType,
-          "matchExact": true,
-          "expression": "",
-          "id": "",
-          "alias": "",
-          "period": "",
-          "metricQueryType": 0,
-          "metricEditorMode": 0,
-          "sqlExpression": "",
-          "accountId": "657907747545",
-          "region": ""
-        };
-        onChange({ ...query });
-        service.getSupportedPanels(res[0].elementType).then((res) => {
-          setSupportedPanels(res);
-        });
+        if (cloudElement) {
+          const cloudElementQuery = getCloudElementsQuery(id, cloudElement, datasource.meta.jsonData.awsxEndPoint || "");
+          query = {
+            ...query,
+            ...cloudElementQuery
+          };
+          onChange({ ...query });
+          service.getSupportedPanels(cloudElement.elementType.toUpperCase(), "AWS").then((res) => {
+            if (res && res.length > 0) {
+              const panels: any = [];
+              res.map((panel: any) => {
+                panels.push({
+                  label: panel.name,
+                  value: panel.name
+                });
+              });
+              setSupportedPanels(panels);
+            }
+          });
+        }
       }
     });
   }, [onChange]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -85,17 +74,17 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: any) {
   };
 
   const onChangeSupportedPanel = (value: any) => {
-    onChange({ ...query, supportedPanel: value });
+    onChange({ ...query, queryString: value });
   };
 
   const onChangeResponseType = (value: any) => {
-    onChange({ ...query, supportedPanel: value });
+    onChange({ ...query, responseType: value });
   };
 
   const {
     elementType,
     cloudIdentifierId,
-    supportedPanel,
+    queryString,
     responseType
   } = query;
 
@@ -119,7 +108,7 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: any) {
           <InlineField label="Supported Panels">
             <Select
               className="min-width-12 width-12"
-              value={supportedPanel}
+              value={queryString}
               options={supportedPanels}
               onChange={(e) => onChangeSupportedPanel(e.value)}
               menuShouldPortal={true}

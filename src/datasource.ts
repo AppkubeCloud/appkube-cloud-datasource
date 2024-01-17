@@ -2,14 +2,19 @@ import { DataSourceInstanceSettings, CoreApp, DataQueryRequest, DataQueryRespons
 import { DataSourceWithBackend } from '@grafana/runtime';
 import { Services } from './service';
 import { MyQuery, MyDataSourceOptions, DEFAULT_QUERY } from './types';
+import {
+  getCloudElementsQuery
+} from './common-ds';
 import { Observable, from, mergeMap } from 'rxjs';
 
 export class DataSource extends DataSourceWithBackend<MyQuery, MyDataSourceOptions> {
   service;
+  awsxUrl;
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
     super(instanceSettings);
     this.service = new Services(instanceSettings.jsonData.cmdbEndpoint || "", instanceSettings.jsonData.grafanaEndpoint || "");
     instanceSettings.meta.jsonData = JSON.parse(JSON.stringify(instanceSettings.jsonData));
+    this.awsxUrl = instanceSettings.jsonData.awsxEndPoint || "";
   }
 
   findParam(paramName: string, url: string) {
@@ -25,18 +30,14 @@ export class DataSource extends DataSourceWithBackend<MyQuery, MyDataSourceOptio
 
   getCloudElements(id: string) {
     return from(this.service.getCloudElements(id).then(res => {
-      let query = {};
+      let cloudElementQuery = {};
       if (res && res[0]) {
         const cloudElement = res[0];
-        query = {
-          "elementType": cloudElement.elementType,
-          "elementId": parseInt(id, 10),
-          "cloudIdentifierName": cloudElement.instanceName,
-          "cloudIdentifierId": cloudElement.instanceId,
-          "environmentId": parseInt(id, 10),
-        };
+        if (cloudElement) {
+          cloudElementQuery = getCloudElementsQuery(id, cloudElement, this.awsxUrl);
+        }
       }
-      return query;
+      return cloudElementQuery;
     }));
   };
 
