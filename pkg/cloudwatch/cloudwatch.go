@@ -360,7 +360,8 @@ func (e *cloudWatchExecutor) QueryData(ctx context.Context, req *backend.QueryDa
 	if err != nil {
 		return nil, err
 	}
-	model.Region = region // assigning region explicitly. Change for appkube datasource
+	model.Region = region // assigning region exp
+	// licitly. Change for appkube datasource
 	_, fromAlert := req.Headers["FromAlert"]
 	isLogAlertQuery := fromAlert && model.QueryMode == logsQueryMode
 

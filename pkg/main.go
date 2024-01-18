@@ -39,7 +39,19 @@ func main() {
 	//testCloudWatchLogs()
 	//testAppkubeMetricsAPIcall()
 	//testAppkubeCputUtilization()
+	//testTimeFormat()
 }
+
+//func testTimeFormat() {
+//	timeLayout := "2024-01-18T08:48:40.000Z"
+//	strFrom := time.Date(2000, 11, 17, 20, 34, 58, 651387237, time.Unix()).Format(timeLayout)
+//	strTo := time.Now().Format(timeLayout)
+//
+//	parsedTimeFrom, _ := time.Parse(time.RFC3339, strFrom)
+//	parsedTimeTo, _ := time.Parse(time.RFC3339, strTo)
+//	fmt.Println("from ", parsedTimeFrom)
+//	fmt.Println("to ", parsedTimeTo)
+//}
 
 func testCloudwatchMetrics() {
 	fmt.Println("Calling cloudwatch metrics")
@@ -193,6 +205,7 @@ func testAppkubeAPIcall() {
 //	elementType := "EC2"
 //	instanceID := "i-05e4e6757f13da657"
 //	query := "cpu_utilization_panel"
+//	responseType := "frame"
 //	//statistic := "SampleCount"
 //	client, err := infinity.NewClient(models.InfinitySettings{})
 //	if err != nil {
@@ -212,8 +225,9 @@ func testAppkubeAPIcall() {
 //					"crossAccountRoleArn":"%s",
 //					"elementType":"%s",
 //					"instanceID":"%s",
-//					"query":"%s"
-//				}`, zone, externalId, crossAccountRoleArn, elementType, instanceID, query)),
+//					"query":"%s",
+//"responseType":"%s"
+//				}`, zone, externalId, crossAccountRoleArn, elementType, instanceID, query, responseType)),
 //	}, *client, map[string]string{}, backend.PluginContext{})
 //	fmt.Println("Response: ", res.Frames)
 //}
