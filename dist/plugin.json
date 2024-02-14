@@ -5,6 +5,7 @@
   "id": "appkube-cloud-datasource",
   "metrics": true,
   "backend": true,
+  "alerting": true,
   "executable": "gpx_cloud_datasource",
   "info": {
     "description": "Backend plugin to get cloud element details",

@@ -15,26 +15,26 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "RESPONSE_TYPE": () => (/* binding */ RESPONSE_TYPE),
 /* harmony export */   "getCloudElementsQuery": () => (/* binding */ getCloudElementsQuery)
 /* harmony export */ });
-var MetricEditorMode;
+let MetricEditorMode;
 (function (MetricEditorMode) {
   MetricEditorMode[MetricEditorMode["Builder"] = 0] = "Builder";
   MetricEditorMode[MetricEditorMode["Code"] = 1] = "Code";
 })(MetricEditorMode || (MetricEditorMode = {}));
-var RESPONSE_TYPE = [{
+const RESPONSE_TYPE = [{
   label: 'JSON',
   value: "JSON"
 }, {
   label: 'Frame',
   value: "Frame"
 }];
-var METRIC_EDITOR_MODES = [{
+const METRIC_EDITOR_MODES = [{
   label: 'Builder',
   value: MetricEditorMode.Builder
 }, {
   label: 'Code',
   value: MetricEditorMode.Code
 }];
-var getCloudElementsQuery = function getCloudElementsQuery(id, cloudElement, awsxUrl) {
+const getCloudElementsQuery = function (id, cloudElement, awsxUrl) {
   return {
     "cloudIdentifierName": cloudElement.instanceName,
     "type": "appkube-api",
@@ -70,34 +70,35 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _grafana_ui__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @grafana/ui */ "@grafana/ui");
 /* harmony import */ var _grafana_ui__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_grafana_ui__WEBPACK_IMPORTED_MODULE_1__);
-function _extends() { _extends = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
 
 
 function ConfigEditor(props) {
-  var onOptionsChange = props.onOptionsChange,
-    options = props.options;
-  var onAwsxAPIEndpoint = function onAwsxAPIEndpoint(event) {
-    var jsonData = _extends({}, options.jsonData, {
+  const {
+    onOptionsChange,
+    options
+  } = props;
+  const onAwsxAPIEndpoint = event => {
+    const jsonData = Object.assign({}, options.jsonData, {
       awsxEndPoint: event.target.value
     });
-    onOptionsChange(_extends({}, options, {
-      jsonData: jsonData
+    onOptionsChange(Object.assign({}, options, {
+      jsonData
     }));
   };
-  var onGrafanaEndPoint = function onGrafanaEndPoint(event) {
-    var jsonData = _extends({}, options.jsonData, {
+  const onGrafanaEndPoint = event => {
+    const jsonData = Object.assign({}, options.jsonData, {
       grafanaEndpoint: event.target.value
     });
-    onOptionsChange(_extends({}, options, {
-      jsonData: jsonData
+    onOptionsChange(Object.assign({}, options, {
+      jsonData
     }));
   };
-  var onAPIEndPointChange = function onAPIEndPointChange(event) {
-    var jsonData = _extends({}, options.jsonData, {
+  const onAPIEndPointChange = event => {
+    const jsonData = Object.assign({}, options.jsonData, {
       cmdbEndpoint: event.target.value
     });
-    onOptionsChange(_extends({}, options, {
-      jsonData: jsonData
+    onOptionsChange(Object.assign({}, options, {
+      jsonData
     }));
   };
 
@@ -125,7 +126,9 @@ function ConfigEditor(props) {
   //   });
   // };
 
-  var jsonData = options.jsonData;
+  const {
+    jsonData
+  } = options;
   // const { jsonData, secureJsonFields } = options;
   // const secureJsonData = (options.secureJsonData || {}) as MySecureJsonData;
 
@@ -177,45 +180,34 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _common_ds__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../common-ds */ "./common-ds/index.ts");
 /* harmony import */ var _extended_EditorRow__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../extended/EditorRow */ "./extended/EditorRow.tsx");
 /* harmony import */ var _service__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../service */ "./service/index.ts");
-function _extends() { _extends = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
-function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
-function _iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i["return"] && (_r = _i["return"](), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
-function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 
 
 
 
 function QueryEditor(_ref) {
-  var query = _ref.query,
-    onChange = _ref.onChange,
-    onRunQuery = _ref.onRunQuery,
-    datasource = _ref.datasource;
-  var service = new _service__WEBPACK_IMPORTED_MODULE_4__.Services(datasource.meta.jsonData.cmdbEndpoint || "", datasource.meta.jsonData.grafanaEndpoint || "");
-  var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(""),
-    _useState2 = _slicedToArray(_useState, 2),
-    elementId = _useState2[0],
-    setElementId = _useState2[1];
-  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
-    _useState4 = _slicedToArray(_useState3, 2),
-    supportedPanels = _useState4[0],
-    setSupportedPanels = _useState4[1];
-  var onChanged = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
-  var getCloudElements = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(function (id, query) {
-    service.getCloudElements(id).then(function (res) {
+  let {
+    query,
+    onChange,
+    onRunQuery,
+    datasource
+  } = _ref;
+  const service = new _service__WEBPACK_IMPORTED_MODULE_4__.Services(datasource.meta.jsonData.cmdbEndpoint || "", datasource.meta.jsonData.grafanaEndpoint || "");
+  const [elementId, setElementId] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)("");
+  const [supportedPanels, setSupportedPanels] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const onChanged = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
+  const getCloudElements = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((id, query) => {
+    service.getCloudElements(id).then(res => {
       if (res && res[0]) {
-        var cloudElement = res[0];
+        const cloudElement = res[0];
         if (cloudElement) {
-          var cloudElementQuery = (0,_common_ds__WEBPACK_IMPORTED_MODULE_2__.getCloudElementsQuery)(id, cloudElement, datasource.meta.jsonData.awsxEndPoint || "");
-          query = _extends({}, query, cloudElementQuery);
-          onChange(_extends({}, query));
-          service.getSupportedPanels(cloudElement.elementType.toUpperCase(), "AWS").then(function (res) {
+          const cloudElementQuery = (0,_common_ds__WEBPACK_IMPORTED_MODULE_2__.getCloudElementsQuery)(id, cloudElement, datasource.meta.jsonData.awsxEndPoint || "");
+          query = Object.assign({}, query, cloudElementQuery);
+          onChange(Object.assign({}, query));
+          service.getSupportedPanels(cloudElement.elementType.toUpperCase(), "AWS").then(res => {
             if (res && res.length > 0) {
-              var panels = [];
-              res.map(function (panel) {
+              const panels = [];
+              res.map(panel => {
                 panels.push({
                   label: panel.name,
                   value: panel.name
@@ -229,9 +221,9 @@ function QueryEditor(_ref) {
     });
   }, [onChange]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (onChanged.current === false) {
-      var id = findParam("var-elementId", window.location.href);
+      const id = findParam("var-elementId", window.location.href);
       if (id) {
         setElementId(id);
         getCloudElements(id, query);
@@ -241,56 +233,54 @@ function QueryEditor(_ref) {
       onChanged.current = true;
     }
   }, [query, onChange, getCloudElements]);
-  var findParam = function findParam(paramName, url) {
+  const findParam = (paramName, url) => {
     if (!url) {
       url = location.href;
     }
     paramName = paramName.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-    var regexS = "[\\?&]" + paramName + "=([^&#]*)";
-    var regex = new RegExp(regexS);
-    var results = regex.exec(url);
+    const regexS = "[\\?&]" + paramName + "=([^&#]*)";
+    const regex = new RegExp(regexS);
+    const results = regex.exec(url);
     return results == null ? "" : results[1];
   };
-  var onChangeElementType = function onChangeElementType(e) {
-    onChange(_extends({}, query, {
+  const onChangeElementType = e => {
+    onChange(Object.assign({}, query, {
       elementType: e.target.value
     }));
   };
-  var onChangeInstanceID = function onChangeInstanceID(e) {
-    onChange(_extends({}, query, {
+  const onChangeInstanceID = e => {
+    onChange(Object.assign({}, query, {
       cloudIdentifierId: e.target.value
     }));
   };
-  var onChangeSupportedPanel = function onChangeSupportedPanel(value) {
-    onChange(_extends({}, query, {
+  const onChangeSupportedPanel = value => {
+    onChange(Object.assign({}, query, {
       queryString: value
     }));
   };
-  var onChangeResponseType = function onChangeResponseType(value) {
-    onChange(_extends({}, query, {
+  const onChangeResponseType = value => {
+    onChange(Object.assign({}, query, {
       responseType: value
     }));
   };
-  var elementType = query.elementType,
-    cloudIdentifierId = query.cloudIdentifierId,
-    queryString = query.queryString,
-    responseType = query.responseType;
+  const {
+    elementType,
+    cloudIdentifierId,
+    queryString,
+    responseType
+  } = query;
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_extended_EditorRow__WEBPACK_IMPORTED_MODULE_3__.EditorRows, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_extended_EditorRow__WEBPACK_IMPORTED_MODULE_3__.EditorRow, {
     label: ""
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_1__.InlineField, {
     label: "Element Type"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_1__.Input, {
     value: elementType,
-    onChange: function onChange(e) {
-      return onChangeElementType(e);
-    }
+    onChange: e => onChangeElementType(e)
   })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_1__.InlineField, {
     label: "Instance ID"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_1__.Input, {
     value: cloudIdentifierId,
-    onChange: function onChange(e) {
-      return onChangeInstanceID(e);
-    }
+    onChange: e => onChangeInstanceID(e)
   })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_1__.InlineField, {
     label: "Element ID"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_1__.Input, {
@@ -304,9 +294,7 @@ function QueryEditor(_ref) {
     className: "min-width-12 width-12",
     value: queryString,
     options: supportedPanels,
-    onChange: function onChange(e) {
-      return onChangeSupportedPanel(e.value);
-    },
+    onChange: e => onChangeSupportedPanel(e.value),
     menuShouldPortal: true
   })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_1__.InlineField, {
     label: "Response Type"
@@ -314,9 +302,7 @@ function QueryEditor(_ref) {
     className: "min-width-12 width-12",
     value: responseType,
     options: _common_ds__WEBPACK_IMPORTED_MODULE_2__.RESPONSE_TYPE,
-    onChange: function onChange(e) {
-      return onChangeResponseType(e.value);
-    },
+    onChange: e => onChangeResponseType(e.value),
     menuShouldPortal: true
   })))));
 }
@@ -340,94 +326,63 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _common_ds__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./common-ds */ "./common-ds/index.ts");
 /* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! rxjs */ "rxjs");
 /* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(rxjs__WEBPACK_IMPORTED_MODULE_4__);
-function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
-function _extends() { _extends = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-function _get() { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get.bind(); } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(arguments.length < 3 ? target : receiver); } return desc.value; }; } return _get.apply(this, arguments); }
-function _superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf(object); if (object === null) break; } return object; }
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
-function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return typeof key === "symbol" ? key : String(key); }
+function _toPrimitive(input, hint) { if (typeof input !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (typeof res !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
 
 
 
 
-var DataSource = /*#__PURE__*/function (_DataSourceWithBacken) {
-  _inherits(DataSource, _DataSourceWithBacken);
-  var _super = _createSuper(DataSource);
-  function DataSource(instanceSettings) {
-    var _this;
-    _classCallCheck(this, DataSource);
-    _this = _super.call(this, instanceSettings);
-    _defineProperty(_assertThisInitialized(_this), "service", void 0);
-    _defineProperty(_assertThisInitialized(_this), "awsxUrl", void 0);
-    _this.service = new _service__WEBPACK_IMPORTED_MODULE_1__.Services(instanceSettings.jsonData.cmdbEndpoint || "", instanceSettings.jsonData.grafanaEndpoint || "");
+class DataSource extends _grafana_runtime__WEBPACK_IMPORTED_MODULE_0__.DataSourceWithBackend {
+  constructor(instanceSettings) {
+    super(instanceSettings);
+    _defineProperty(this, "service", void 0);
+    _defineProperty(this, "awsxUrl", void 0);
+    this.service = new _service__WEBPACK_IMPORTED_MODULE_1__.Services(instanceSettings.jsonData.cmdbEndpoint || "", instanceSettings.jsonData.grafanaEndpoint || "");
     instanceSettings.meta.jsonData = JSON.parse(JSON.stringify(instanceSettings.jsonData));
-    _this.awsxUrl = instanceSettings.jsonData.awsxEndPoint || "";
-    return _this;
+    this.awsxUrl = instanceSettings.jsonData.awsxEndPoint || "";
   }
-  _createClass(DataSource, [{
-    key: "findParam",
-    value: function findParam(paramName, url) {
-      if (!url) {
-        url = location.href;
-      }
-      paramName = paramName.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-      var regexS = "[\\?&]" + paramName + "=([^&#]*)";
-      var regex = new RegExp(regexS);
-      var results = regex.exec(url);
-      return results == null ? "" : results[1];
+  findParam(paramName, url) {
+    if (!url) {
+      url = location.href;
     }
-  }, {
-    key: "getCloudElements",
-    value: function getCloudElements(id) {
-      var _this2 = this;
-      return (0,rxjs__WEBPACK_IMPORTED_MODULE_4__.from)(this.service.getCloudElements(id).then(function (res) {
-        var cloudElementQuery = {};
-        if (res && res[0]) {
-          var cloudElement = res[0];
-          if (cloudElement) {
-            cloudElementQuery = (0,_common_ds__WEBPACK_IMPORTED_MODULE_3__.getCloudElementsQuery)(id, cloudElement, _this2.awsxUrl);
-          }
+    paramName = paramName.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+    const regexS = "[\\?&]" + paramName + "=([^&#]*)";
+    const regex = new RegExp(regexS);
+    const results = regex.exec(url);
+    return results == null ? "" : results[1];
+  }
+  getCloudElements(id) {
+    return (0,rxjs__WEBPACK_IMPORTED_MODULE_4__.from)(this.service.getCloudElements(id).then(res => {
+      let cloudElementQuery = {};
+      if (res && res[0]) {
+        const cloudElement = res[0];
+        if (cloudElement) {
+          cloudElementQuery = (0,_common_ds__WEBPACK_IMPORTED_MODULE_3__.getCloudElementsQuery)(id, cloudElement, this.awsxUrl);
         }
-        return cloudElementQuery;
-      }));
-    }
-  }, {
-    key: "getDefaultQuery",
-    value: function getDefaultQuery(_) {
-      return _types__WEBPACK_IMPORTED_MODULE_2__.DEFAULT_QUERY;
-    }
-  }, {
-    key: "query",
-    value: function query(request) {
-      var _this3 = this;
-      var id = this.findParam("var-elementId", window.location.href);
-      if (id) {
-        return this.getCloudElements(id).pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_4__.mergeMap)(function (query) {
-          var targets = request.targets;
-          for (var i = 0; i < targets.length; i++) {
-            targets[i] = _extends({}, targets[i], query);
-          }
-          return _get(_getPrototypeOf(DataSource.prototype), "query", _this3).call(_this3, request);
-        }));
-      } else {
-        return _get(_getPrototypeOf(DataSource.prototype), "query", this).call(this, request);
       }
+      return cloudElementQuery;
+    }));
+  }
+  getDefaultQuery(_) {
+    return _types__WEBPACK_IMPORTED_MODULE_2__.DEFAULT_QUERY;
+  }
+  query(request) {
+    const id = this.findParam("var-elementId", window.location.href);
+    if (id) {
+      return this.getCloudElements(id).pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_4__.mergeMap)(query => {
+        let targets = request.targets;
+        for (let i = 0; i < targets.length; i++) {
+          targets[i] = Object.assign({}, targets[i], query);
+        }
+        return super.query(request);
+      }));
+    } else {
+      return super.query(request);
     }
-  }]);
-  return DataSource;
-}(_grafana_runtime__WEBPACK_IMPORTED_MODULE_0__.DataSourceWithBackend);
+  }
+}
 
 /***/ }),
 
@@ -449,32 +404,24 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _grafana_ui__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @grafana/ui */ "@grafana/ui");
 /* harmony import */ var _grafana_ui__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_grafana_ui__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var _Stack__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Stack */ "./extended/Stack.tsx");
-function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
-function _iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i["return"] && (_r = _i["return"](), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
-function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 
 
 
-var EditorRow = function EditorRow(_ref) {
-  var label = _ref.label,
-    collapsible = _ref.collapsible,
-    _ref$collapsed = _ref.collapsed,
-    collapsed = _ref$collapsed === void 0 ? true : _ref$collapsed,
-    title = _ref.title,
-    dataTestId = _ref.dataTestId,
-    children = _ref.children;
-  var styles = (0,_grafana_ui__WEBPACK_IMPORTED_MODULE_2__.useStyles2)(getStyles);
-  var _useState = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(collapsed),
-    _useState2 = _slicedToArray(_useState, 2),
-    show = _useState2[0],
-    setShow = _useState2[1];
-  var testId = function testId() {
-    var compType = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-    return "infinity-query-row".concat(compType ? '-' + compType : '', "-").concat((dataTestId || label).replace(/\ /g, '-')).toLowerCase();
+const EditorRow = _ref => {
+  let {
+    label,
+    collapsible,
+    collapsed = true,
+    title,
+    dataTestId,
+    children
+  } = _ref;
+  const styles = (0,_grafana_ui__WEBPACK_IMPORTED_MODULE_2__.useStyles2)(getStyles);
+  const [show, setShow] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(collapsed);
+  const testId = function () {
+    let compType = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+    return `infinity-query-row${compType ? '-' + compType : ''}-${(dataTestId || label).replace(/\ /g, '-')}`.toLowerCase();
   };
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
     className: styles.root,
@@ -484,20 +431,20 @@ var EditorRow = function EditorRow(_ref) {
     fill: "text",
     size: "sm",
     variant: "secondary",
-    onClick: function onClick(e) {
+    onClick: e => {
       setShow(!show);
       e.preventDefault();
     },
     style: {
       marginRight: '10px'
     },
-    "data-testid": testId("collapse-".concat(show ? 'hide' : 'show'))
+    "data-testid": testId(`collapse-${show ? 'hide' : 'show'}`)
   }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("span", {
-    onClick: function onClick(e) {
+    onClick: e => {
       setShow(!show);
       e.preventDefault();
     },
-    "data-testid": testId("title")
+    "data-testid": testId(`title`)
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("b", {
     className: styles.collapseTile
   }, label)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("span", {
@@ -508,10 +455,10 @@ var EditorRow = function EditorRow(_ref) {
       marginTop: label && collapsible ? '15px' : '0px',
       marginLeft: '0px'
     },
-    "data-testid": testId("children")
+    "data-testid": testId(`children`)
   }, children));
 };
-var getStyles = function getStyles(theme) {
+const getStyles = theme => {
   return {
     root: (0,_emotion_css__WEBPACK_IMPORTED_MODULE_0__.css)({
       padding: theme.spacing(1),
@@ -531,8 +478,10 @@ var getStyles = function getStyles(theme) {
     })
   };
 };
-var EditorRows = function EditorRows(_ref2) {
-  var children = _ref2.children;
+const EditorRows = _ref2 => {
+  let {
+    children
+  } = _ref2;
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(_Stack__WEBPACK_IMPORTED_MODULE_3__.Stack, {
     gap: 0.5,
     direction: "column"
@@ -557,23 +506,22 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _grafana_ui__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @grafana/ui */ "@grafana/ui");
 /* harmony import */ var _grafana_ui__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_grafana_ui__WEBPACK_IMPORTED_MODULE_2__);
-var _excluded = ["children"];
-function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
+const _excluded = ["children"];
 function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
 
 
 
-var Stack = function Stack(_ref) {
-  var children = _ref.children,
-    props = _objectWithoutProperties(_ref, _excluded);
-  var styles = (0,_grafana_ui__WEBPACK_IMPORTED_MODULE_2__.useStyles2)((0,react__WEBPACK_IMPORTED_MODULE_1__.useCallback)(function (theme) {
-    return getStyles(theme, props);
-  }, [props]));
+const Stack = _ref => {
+  let {
+      children
+    } = _ref,
+    props = _objectWithoutPropertiesLoose(_ref, _excluded);
+  const styles = (0,_grafana_ui__WEBPACK_IMPORTED_MODULE_2__.useStyles2)((0,react__WEBPACK_IMPORTED_MODULE_1__.useCallback)(theme => getStyles(theme, props), [props]));
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
     className: styles.root
   }, children);
 };
-var getStyles = function getStyles(theme, props) {
+const getStyles = (theme, props) => {
   var _props$direction, _props$wrap, _props$gap;
   return {
     root: (0,_emotion_css__WEBPACK_IMPORTED_MODULE_0__.css)({
@@ -599,42 +547,27 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "Services": () => (/* binding */ Services)
 /* harmony export */ });
-function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
 function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
-function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return typeof key === "symbol" ? key : String(key); }
+function _toPrimitive(input, hint) { if (typeof input !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (typeof res !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 // const BASE_URL = "https://api.synectiks.net/cmdb";
 // const APPKUBE_URL="http://localhost:3001"
-var GET_CLOUD_ELEMENT = "/cloud-element/search";
-var GET_SUPPORTED_PANELS = "/cloud-element-supported-api/search";
-var Services = /*#__PURE__*/function () {
-  function Services(cmdbEndpoint, grafanaEndpoint) {
-    _classCallCheck(this, Services);
+const GET_CLOUD_ELEMENT = "/cloud-element/search";
+const GET_SUPPORTED_PANELS = "/cloud-element-supported-api/search";
+class Services {
+  constructor(cmdbEndpoint, grafanaEndpoint) {
     _defineProperty(this, "cmdbEndpoint", "");
     _defineProperty(this, "grafanaEndpoint", "");
     this.cmdbEndpoint = cmdbEndpoint;
     this.grafanaEndpoint = grafanaEndpoint;
   }
-  _createClass(Services, [{
-    key: "getCloudElements",
-    value: function getCloudElements(id) {
-      return fetch("".concat(this.cmdbEndpoint).concat(GET_CLOUD_ELEMENT, "?id=").concat(id)).then(function (response) {
-        return response.json();
-      });
-    }
-  }, {
-    key: "getSupportedPanels",
-    value: function getSupportedPanels(elementType, cloud) {
-      return fetch("".concat(this.cmdbEndpoint).concat(GET_SUPPORTED_PANELS, "?elementType=").concat(elementType, "&cloud=").concat(cloud)).then(function (response) {
-        return response.json();
-      });
-    }
-  }]);
-  return Services;
-}();
+  getCloudElements(id) {
+    return fetch(`${this.cmdbEndpoint}${GET_CLOUD_ELEMENT}?id=${id}`).then(response => response.json());
+  }
+  getSupportedPanels(elementType, cloud) {
+    return fetch(`${this.cmdbEndpoint}${GET_SUPPORTED_PANELS}?elementType=${elementType}&cloud=${cloud}`).then(response => response.json());
+  }
+}
 
 /***/ }),
 
@@ -648,7 +581,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "DEFAULT_QUERY": () => (/* binding */ DEFAULT_QUERY)
 /* harmony export */ });
-var DEFAULT_QUERY = {
+const DEFAULT_QUERY = {
   constant: 6.5
 };
 
@@ -805,7 +738,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-var plugin = new _grafana_data__WEBPACK_IMPORTED_MODULE_0__.DataSourcePlugin(_datasource__WEBPACK_IMPORTED_MODULE_1__.DataSource).setConfigEditor(_components_ConfigEditor__WEBPACK_IMPORTED_MODULE_2__.ConfigEditor).setQueryEditor(_components_QueryEditor__WEBPACK_IMPORTED_MODULE_3__.QueryEditor);
+const plugin = new _grafana_data__WEBPACK_IMPORTED_MODULE_0__.DataSourcePlugin(_datasource__WEBPACK_IMPORTED_MODULE_1__.DataSource).setConfigEditor(_components_ConfigEditor__WEBPACK_IMPORTED_MODULE_2__.ConfigEditor).setQueryEditor(_components_QueryEditor__WEBPACK_IMPORTED_MODULE_3__.QueryEditor);
 })();
 
 /******/ 	return __webpack_exports__;
