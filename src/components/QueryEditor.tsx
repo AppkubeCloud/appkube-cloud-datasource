@@ -46,6 +46,8 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: any) {
       let id = "";
       if (document.getElementById("elementId")) {
         id = (document.getElementById("elementId") as HTMLInputElement)?.value;
+      } else {
+        id = query.elementId;
       }
       if (id) {
         setElementId(id);
