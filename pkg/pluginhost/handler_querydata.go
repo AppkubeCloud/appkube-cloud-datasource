@@ -91,18 +91,19 @@ func QueryData(ctx context.Context, backendQuery backend.DataQuery, infClient in
 		respType := strings.ToLower(query.ResponseType)
 		query.Type = "url"
 		query.Parser = "backend"
-		query.URL = "http://localhost:7000/awsx-api/getQueryOutput"
+		apiParam := "?elementId=" + strconv.FormatInt(query.ElementId, 10) + "&elementType=" + query.ElementType + "&query=" + query.QueryString
+		query.URL = query.AwsxUrl + apiParam
 		fmt.Println("Appkube awsx url :" + query.URL)
 		urlOptions := models.URLOptions{
 			Method: "Get",
 			Params: []models.URLOptionKeyValuePair{
 				{"responseType", respType},
-				{"zone", query.Zone},
-				{"externalId", query.ExternalId},
-				{"crossAccountRoleArn", query.CrossAccountRoleArn},
-				{"elementType", "AWS/" + query.ElementType},
+				//{"zone", query.Zone},
+				//{"externalId", query.ExternalId},
+				//{"crossAccountRoleArn", query.CrossAccountRoleArn},
+				{"elementType", query.ElementType},
 				{"elementId", strconv.FormatInt(query.ElementId, 10)},
-				{"instanceID", query.CloudIdentifierId},
+				//{"instanceID", query.CloudIdentifierId},
 				{"query", query.QueryString},
 				{"startTime", backendQuery.TimeRange.From.Format(time.RFC3339)},
 				{"endTime", backendQuery.TimeRange.To.Format(time.RFC3339)},
