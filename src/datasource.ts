@@ -17,17 +17,6 @@ export class DataSource extends DataSourceWithBackend<MyQuery, MyDataSourceOptio
     this.awsxUrl = instanceSettings.jsonData.awsxEndPoint || "";
   }
 
-  findParam(paramName: string, url: string) {
-    if (!url) {
-      url = location.href;
-    }
-    paramName = paramName.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-    const regexS = "[\\?&]" + paramName + "=([^&#]*)";
-    const regex = new RegExp(regexS);
-    const results = regex.exec(url);
-    return results == null ? "" : results[1];
-  }
-
   getCloudElements(id: string) {
     return from(this.service.getCloudElements(id).then(res => {
       let cloudElementQuery = {};
@@ -46,7 +35,10 @@ export class DataSource extends DataSourceWithBackend<MyQuery, MyDataSourceOptio
   }
 
   query(request: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
-    const id = this.findParam("var-elementId", window.location.href);
+    let id = "";
+    if (document.getElementById("elementId")) {
+      id = (document.getElementById("elementId") as HTMLInputElement)?.value;
+    }
     if (id) {
       return this.getCloudElements(id).pipe(
         mergeMap((query: object) => {

@@ -43,7 +43,10 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: any) {
 
   useEffect(() => {
     if (onChanged.current === false) {
-      const id = findParam("var-elementId", window.location.href);
+      let id = "";
+      if (document.getElementById("elementId")) {
+        id = (document.getElementById("elementId") as HTMLInputElement)?.value;
+      }
       if (id) {
         setElementId(id);
         getCloudElements(id, query);
@@ -53,17 +56,6 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: any) {
       onChanged.current = true;
     }
   }, [query, onChange, getCloudElements]);
-
-  const findParam = (paramName: string, url: string) => {
-    if (!url) {
-      url = location.href;
-    }
-    paramName = paramName.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-    const regexS = "[\\?&]" + paramName + "=([^&#]*)";
-    const regex = new RegExp(regexS);
-    const results = regex.exec(url);
-    return results == null ? "" : results[1];
-  }
 
   const onChangeElementType = (e: any) => {
     onChange({ ...query, elementType: e.target.value });

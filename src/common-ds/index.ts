@@ -32,3 +32,15 @@ export const getCloudElementsQuery = function (id: any, cloudElement: any, awsxU
         "awsxUrl": awsxUrl
     };
 };
+
+
+export const findParam = (paramName: string, url: string) => {
+    if (!url) {
+        url = location.href;
+    }
+    paramName = paramName.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+    const regexS = "[\\?&]" + paramName + "=([^&#]*)";
+    const regex = new RegExp(regexS);
+    const results = regex.exec(url);
+    return results == null ? "" : results[1];
+}
