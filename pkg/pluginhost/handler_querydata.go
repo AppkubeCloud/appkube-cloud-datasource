@@ -330,6 +330,7 @@ func getAwsCredentials(landingZoneId int64, ctx context.Context, infClient infin
 	return infClient.GetResults(ctx, query, requestHeaders)
 }
 func createResponseFrame(frame *data.Frame, timeLayout string) ([]*data.Frame, error) {
+	fmt.Println("create a new frame")
 	var newFrames []*data.Frame
 
 	if frame.Meta != nil && frame.Meta.Custom != nil {
