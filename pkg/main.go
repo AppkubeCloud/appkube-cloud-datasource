@@ -197,40 +197,39 @@ func testAppkubeAPIcall() {
 	fmt.Println("Response: ", res.Frames)
 }
 
-//
-//func testAppkubeCputUtilization() {
-//	zone := "us-east-1"
-//	externalId := "657907747545"
-//	crossAccountRoleArn := "arn:aws:iam::<accountId>:role/CrossAccount"
-//	elementType := "EC2"
-//	instanceID := "i-05e4e6757f13da657"
-//	query := "cpu_utilization_panel"
-//	responseType := "frame"
-//	//statistic := "SampleCount"
-//	client, err := infinity.NewClient(models.InfinitySettings{})
-//	if err != nil {
-//		fmt.Println("Error getting client: ", err)
-//	}
-//	res := pluginhost.QueryData(context.Background(), backend.DataQuery{
-//		JSON: []byte(fmt.Sprintf(`{
-//					"type": "appkube-api",
-//					"source": "url",
-//					"productId": 1,
-//					"environmentId": 2,
-//					"moduleId": 2,
-//					"serviceId":2,
-//					"serviceType": "java app service",
-//					"zone":"%s",
-//					"externalId":"%s",
-//					"crossAccountRoleArn":"%s",
-//					"elementType":"%s",
-//					"instanceID":"%s",
-//					"query":"%s",
-//"responseType":"%s"
-//				}`, zone, externalId, crossAccountRoleArn, elementType, instanceID, query, responseType)),
-//	}, *client, map[string]string{}, backend.PluginContext{})
-//	fmt.Println("Response: ", res.Frames)
-//}
+func testAppkubeCputUtilization() {
+	zone := "us-east-1"
+	externalId := "657907747545"
+	crossAccountRoleArn := "arn:aws:iam::657907747545:role/CrossAccount"
+	elementType := "EC2"
+	instanceID := "i-05e4e6757f13da657"
+	query := "cpu_utilization_panel"
+	responseType := "frame"
+	//statistic := "SampleCount"
+	client, err := infinity.NewClient(models.InfinitySettings{})
+	if err != nil {
+		fmt.Println("Error getting client: ", err)
+	}
+	res := pluginhost.QueryData(context.Background(), backend.DataQuery{
+		JSON: []byte(fmt.Sprintf(`{
+					"type": "appkube-api",
+					"source": "url",
+					"productId": 1,
+					"environmentId": 2,
+					"moduleId": 2,
+					"serviceId":2,
+					"serviceType": "java app service",
+					"zone":"%s",
+					"externalId":"%s",
+					"crossAccountRoleArn":"%s",
+					"elementType":"%s",
+					"instanceID":"%s",
+					"query":"%s",
+                    "responseType":"%s"
+				}`, zone, externalId, crossAccountRoleArn, elementType, instanceID, query, responseType)),
+	}, *client, map[string]string{}, backend.PluginContext{})
+	fmt.Println("Response: ", res.Frames)
+}
 
 func testAppkubeMetricsAPIcall() {
 	client, err := infinity.NewClient(models.InfinitySettings{})

@@ -92,7 +92,9 @@ func QueryData(ctx context.Context, backendQuery backend.DataQuery, infClient in
 		query.Type = "url"
 		query.Parser = "backend"
 		apiParam := "?elementId=" + strconv.FormatInt(query.ElementId, 10) + "&elementType=" + query.ElementType + "&query=" + query.QueryString
+
 		query.URL = query.AwsxUrl + apiParam
+		//query.URL = "http://localhost:7000/awsx-api/getQueryOutput?elementId=9321&elementType=EC2&query=cpu_utilization_panel&responseType=frame"
 		fmt.Println("Appkube awsx url :" + query.URL)
 		urlOptions := models.URLOptions{
 			Method: "Get",
@@ -109,11 +111,8 @@ func QueryData(ctx context.Context, backendQuery backend.DataQuery, infClient in
 				{"endTime", backendQuery.TimeRange.To.Format(time.RFC3339)},
 
 				//{"responseType", "frame"},
-				//{"zone", "us-east-1"},
-				//{"externalId", "DJ6@a8hzG@xkFwSvLmkSR5SN"},
-				//{"crossAccountRoleArn", "arn:aws:iam::657907747545:role/CrossAccount"},
 				//{"elementType", "AWS/EC2"},
-				//{"instanceID", "i-05e4e6757f13da657"},
+				//{"elementId", "9321"},
 				//{"query", "cpu_utilization_panel"},
 				//{"statistic", "SampleCount"},
 			},
@@ -135,7 +134,9 @@ func QueryData(ctx context.Context, backendQuery backend.DataQuery, infClient in
 			if err != nil {
 				return backend.DataResponse{}
 			}
-			response.Frames = append(response.Frames, responseFrame)
+			for _, frame := range responseFrame {
+				response.Frames = append(response.Frames, frame)
+			}
 		}
 
 	case models.QueryTypeAppKubeMetrics:
@@ -328,166 +329,84 @@ func getAwsCredentials(landingZoneId int64, ctx context.Context, infClient infin
 	backend.Logger.Info("VAULT URL: " + query.URL)
 	return infClient.GetResults(ctx, query, requestHeaders)
 }
+func createResponseFrame(frame *data.Frame, timeLayout string) ([]*data.Frame, error) {
+	var newFrames []*data.Frame
 
-func createResponseFrame(frame *data.Frame, timeLayout string) (*data.Frame, error) {
-	newFrame := data.NewFrame("responce_frame")
 	if frame.Meta != nil && frame.Meta.Custom != nil {
 		metaJSON, err := frame.MarshalJSON()
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 
 		var customData map[string]interface{}
 		if err := json.Unmarshal(metaJSON, &customData); err != nil {
-			panic(err)
+			return nil, err
 		}
+
 		layout := timeLayout
-		if schemaVal, ok := customData["schema"]; ok {
-			if schema, ok := schemaVal.(map[string]interface{}); ok {
-				if metaVal, ok := schema["meta"]; ok {
-					if meta, ok := metaVal.(map[string]interface{}); ok {
-						if metaVal, ok := meta["custom"]; ok {
-							if customMap, ok := metaVal.(map[string]interface{}); ok {
-								fmt.Println("Value is a map:", customMap)
-								if customMap, ok := customMap["data"].(string); ok {
-									var dtMap map[string]interface{}
-									if err := json.Unmarshal([]byte(customMap), &dtMap); err != nil {
-										panic(err)
+		frameNames := []string{"AverageUsage", "CurrentUsage", "MaxUsage"}
+		for _, name := range frameNames {
+			if schemaVal, ok := customData["schema"]; ok {
+				if schema, ok := schemaVal.(map[string]interface{}); ok {
+					if metaVal, ok := schema["meta"]; ok {
+						if meta, ok := metaVal.(map[string]interface{}); ok {
+							if customVal, ok := meta["custom"]; ok {
+								if customMap, ok := customVal.(map[string]interface{}); ok {
+									if customMap, ok := customMap["data"].(string); ok {
+										var dtMap map[string]interface{}
+										if err := json.Unmarshal([]byte(customMap), &dtMap); err != nil {
+											return nil, err
+										}
+
+										newFrame := data.NewFrame(name)
+										if customMetric, ok := dtMap[name].(map[string]interface{}); ok {
+											if metricData, ok := customMetric["MetricDataResults"]; ok {
+												if metrics, ok := metricData.([]interface{}); ok && len(metrics) > 0 {
+													timestamps := []*time.Time{}
+													points := []*float64{}
+
+													for _, mt := range metrics {
+														if metric, ok := mt.(map[string]interface{}); ok {
+															tm, _ := metric["Timestamps"].([]interface{})
+															val, _ := metric["Values"].([]interface{})
+
+															for _, t := range tm {
+																parsedTime, _ := time.Parse(layout, t.(string))
+																timestamps = append(timestamps, &parsedTime)
+															}
+
+															for _, v := range val {
+																if value, ok := v.(float64); ok {
+																	points = append(points, &value)
+																}
+															}
+														}
+													}
+
+													timeField := data.NewField(data.TimeSeriesTimeFieldName, nil, timestamps)
+													valueField := data.NewField(data.TimeSeriesValueFieldName, nil, points)
+
+													newFrame.Fields = append(newFrame.Fields, timeField, valueField)
+													newFrames = append(newFrames, newFrame)
+												} else {
+													return nil, fmt.Errorf("The value of 'MetricDataResults' is not a slice with at least one element")
+												}
+											} else {
+												return nil, fmt.Errorf("Value of 'MetricDataResults' key is not a slice")
+											}
+										} else {
+											return nil, fmt.Errorf("Key '%s' not found or not a map[string]interface{}", name)
+										}
 									}
-									fmt.Println(customMap)
-									createFrame(dtMap, layout, newFrame)
-
 								}
-
-							} else {
-								fmt.Println("Value of 'custom' key is not a map[string]interface{}")
-							}
-						} else {
-							fmt.Println("Key 'custom' not found in the meta map")
-						}
-					} else {
-						fmt.Println("Value of 'meta' key is not a map[string]interface{}")
-					}
-				} else {
-					fmt.Println("Key 'meta' not found in 'schema'")
-				}
-			} else {
-				fmt.Println("Value of 'schema' key is not a map[string]interface{}")
-			}
-		} else {
-			fmt.Println("Key 'schema' not found in the data")
-		}
-	}
-	return newFrame, nil
-}
-
-func createFrame(dtMap map[string]interface{}, layout string, newFrame *data.Frame) {
-
-	if customAvg, ok := dtMap["AverageUsage"].(map[string]interface{}); ok {
-		if metricData, ok := customAvg["MetricDataResults"]; ok {
-			if metrics, ok := metricData.([]interface{}); ok && len(metrics) > 0 {
-				timestamps := []*time.Time{}
-				points := []*float64{}
-				for _, mt := range metrics {
-					if metric, ok := mt.(map[string]interface{}); ok {
-						tm, _ := metric["Timestamps"].([]interface{})
-						val, _ := metric["Values"].([]interface{})
-						for _, t := range tm {
-							parsedTime, _ := time.Parse(layout, t.(string))
-							timestamps = append(timestamps, &parsedTime)
-						}
-						for _, v := range val {
-							if value, ok := v.(float64); ok {
-								points = append(points, &value)
 							}
 						}
 					}
 				}
-
-				timeField := data.NewField(data.TimeSeriesTimeFieldName, nil, timestamps)
-				valueField := data.NewField(data.TimeSeriesValueFieldName, nil, points)
-				newFrame.Fields = []*data.Field{
-					timeField,
-					valueField,
-				}
-			} else {
-				fmt.Println("The value of 'MetricDataResults' is not a slice with at least one element")
 			}
-		} else {
-			fmt.Println("Value of 'MetricDataResults' key is not a map[string]interface{}")
 		}
-
 	}
-	if customCurrentUsages, ok := dtMap["CurrentUsage:"].(map[string]interface{}); ok {
-		if metricData, ok := customCurrentUsages["MetricDataResults"]; ok {
-			if metrics, ok := metricData.([]interface{}); ok && len(metrics) > 0 {
-				timestamps := []*time.Time{}
-				points := []*float64{}
-				for _, mt := range metrics {
-					if metric, ok := mt.(map[string]interface{}); ok {
-						tm, _ := metric["Timestamps"].([]interface{})
-						val, _ := metric["Values"].([]interface{})
-						for _, t := range tm {
-							parsedTime, _ := time.Parse(layout, t.(string))
-							timestamps = append(timestamps, &parsedTime)
-						}
-						for _, v := range val {
-							if value, ok := v.(float64); ok {
-								points = append(points, &value)
-							}
-						}
-					}
-				}
-
-				timeField := data.NewField(data.TimeSeriesTimeFieldName, nil, timestamps)
-				valueField := data.NewField(data.TimeSeriesValueFieldName, nil, points)
-				newFrame.Fields = []*data.Field{
-					timeField,
-					valueField,
-				}
-			} else {
-				fmt.Println("The value of 'MetricDataResults' is not a slice with at least one element")
-			}
-		} else {
-			fmt.Println("Value of 'MetricDataResults' key is not a map[string]interface{}")
-		}
-
-	}
-	if customMaxUsage, ok := dtMap["MaxUsage::"].(map[string]interface{}); ok {
-		if metricData, ok := customMaxUsage["MetricDataResults"]; ok {
-			if metrics, ok := metricData.([]interface{}); ok && len(metrics) > 0 {
-				timestamps := []*time.Time{}
-				points := []*float64{}
-				for _, mt := range metrics {
-					if metric, ok := mt.(map[string]interface{}); ok {
-						tm, _ := metric["Timestamps"].([]interface{})
-						val, _ := metric["Values"].([]interface{})
-						for _, t := range tm {
-							parsedTime, _ := time.Parse(layout, t.(string))
-							timestamps = append(timestamps, &parsedTime)
-						}
-						for _, v := range val {
-							if value, ok := v.(float64); ok {
-								points = append(points, &value)
-							}
-						}
-					}
-				}
-
-				timeField := data.NewField(data.TimeSeriesTimeFieldName, nil, timestamps)
-				valueField := data.NewField(data.TimeSeriesValueFieldName, nil, points)
-				newFrame.Fields = []*data.Field{
-					timeField,
-					valueField,
-				}
-			} else {
-				fmt.Println("The value of 'MetricDataResults' is not a slice with at least one element")
-			}
-		} else {
-			fmt.Println("Value of 'MetricDataResults' key is not a map[string]interface{}")
-		}
-
-	}
+	return newFrames, nil
 }
 
 func cerateFrameMetric(frame *data.Frame) (*data.Frame, error) {
