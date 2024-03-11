@@ -131,8 +131,8 @@ func QueryData(ctx context.Context, backendQuery backend.DataQuery, infClient in
 			response.Frames = append(response.Frames, frame)
 		} else if respType == `frame` {
 			fmt.Println("creating frames....................................")
-			//frameLabels := getFrameNames(query.QueryString)
-			frameLabels := getFrameNames("cpu_usage_idle_panel")
+			frameLabels := getFrameNames(query.QueryString)
+			//frameLabels := getFrameNames("cpu_usage_idle_panel")
 			responseFrame, err := createResponseFrame(frame, time.RFC3339, frameLabels)
 			if err != nil {
 				return backend.DataResponse{}
