@@ -92,9 +92,9 @@ func QueryData(ctx context.Context, backendQuery backend.DataQuery, infClient in
 		query.Type = "url"
 		query.Parser = "backend"
 		apiParam := "?elementId=" + strconv.FormatInt(query.ElementId, 10) + "&elementType=" + query.ElementType + "&query=" + query.QueryString
-
 		query.URL = query.AwsxUrl + apiParam
-		//query.URL = "http://localhost:7000/awsx-api/getQueryOutput?elementId=9321&elementType=EC2&query=cpu_utilization_panel&responseType=frame"
+
+		//query.URL = "http://localhost:7000/awsx-api/getQueryOutput?elementId=900000&elementType=EC2&query=cpu_usage_idle_panel&responseType=frame&startTime=2024-02-28T00:00:00Z&endTime=2024-02-28T23:59:59Z"
 		fmt.Println("Appkube awsx url :" + query.URL)
 		urlOptions := models.URLOptions{
 			Method: "Get",
@@ -112,9 +112,10 @@ func QueryData(ctx context.Context, backendQuery backend.DataQuery, infClient in
 
 				//{"responseType", "frame"},
 				//{"elementType", "AWS/EC2"},
-				//{"elementId", "9321"},
-				//{"query", "cpu_utilization_panel"},
-				//{"statistic", "SampleCount"},
+				//{"elementId", "900000"},
+				//{"startTime", "2024-02-28T00:00:00Z"},
+				//{"endTime", "2024-02-28T23:59:59Z"},
+				//{"query", "cpu_usage_idle_panel"},
 			},
 		}
 
@@ -130,7 +131,9 @@ func QueryData(ctx context.Context, backendQuery backend.DataQuery, infClient in
 			response.Frames = append(response.Frames, frame)
 		} else if respType == `frame` {
 			fmt.Println("creating frames....................................")
-			responseFrame, err := createResponseFrame(frame, time.RFC3339)
+			//frameLabels := getFrameNames(query.QueryString)
+			frameLabels := getFrameNames("cpu_usage_idle_panel")
+			responseFrame, err := createResponseFrame(frame, time.RFC3339, frameLabels)
 			if err != nil {
 				return backend.DataResponse{}
 			}
@@ -329,8 +332,18 @@ func getAwsCredentials(landingZoneId int64, ctx context.Context, infClient infin
 	backend.Logger.Info("VAULT URL: " + query.URL)
 	return infClient.GetResults(ctx, query, requestHeaders)
 }
-func createResponseFrame(frame *data.Frame, timeLayout string) ([]*data.Frame, error) {
-	fmt.Println("create a new frame")
+func getFrameNames(query string) []string {
+	var frames []string
+	if query == "cpu_utilization_panel" {
+		frames = []string{"AverageUsage", "CurrentUsage", "MaxUsage"}
+	} else if query == "cpu_usage_idle_panel" {
+		frames = []string{"RawData"}
+	} else if query == "network_utilization_panel" {
+		frames = []string{"InboundTraffic", "InboundTraffic"}
+	}
+	return frames
+}
+func createResponseFrame(frame *data.Frame, timeLayout string, frameLabels []string) ([]*data.Frame, error) {
 	var newFrames []*data.Frame
 
 	if frame.Meta != nil && frame.Meta.Custom != nil {
@@ -345,7 +358,7 @@ func createResponseFrame(frame *data.Frame, timeLayout string) ([]*data.Frame, e
 		}
 
 		layout := timeLayout
-		frameNames := []string{"AverageUsage", "CurrentUsage", "MaxUsage"}
+		frameNames := frameLabels
 		for _, name := range frameNames {
 			if schemaVal, ok := customData["schema"]; ok {
 				if schema, ok := schemaVal.(map[string]interface{}); ok {
