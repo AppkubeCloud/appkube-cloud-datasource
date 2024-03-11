@@ -338,6 +338,10 @@ func getFrameNames(query string) []string {
 		frames = []string{"AverageUsage", "CurrentUsage", "MaxUsage"}
 	} else if query == "cpu_usage_idle_panel" {
 		frames = []string{"RawData"}
+	} else if query == "cpu_usage_nice_panel" {
+		frames = []string{"RawData"}
+	} else if query == "cpu_usage_sys_panel" {
+		frames = []string{"RawData"}
 	} else if query == "network_utilization_panel" {
 		frames = []string{"InboundTraffic", "InboundTraffic"}
 	}
