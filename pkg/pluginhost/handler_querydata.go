@@ -337,13 +337,37 @@ func getFrameNames(query string) []string {
 	if query == "cpu_utilization_panel" {
 		frames = []string{"AverageUsage", "CurrentUsage", "MaxUsage"}
 	} else if query == "cpu_usage_idle_panel" {
-		frames = []string{"RawData"}
+		frames = []string{"CPU_Idle"}
 	} else if query == "cpu_usage_nice_panel" {
-		frames = []string{"RawData"}
+		frames = []string{"CPU_Nice"}
 	} else if query == "cpu_usage_sys_panel" {
-		frames = []string{"RawData"}
-	} else if query == "network_utilization_panel" {
-		frames = []string{"InboundTraffic", "InboundTraffic"}
+		frames = []string{"CPU_Sys"}
+	} else if query == "cpu_usage_user_panel" {
+		frames = []string{"CPU_User"}
+	} else if query == "mem_usage_total_panel" {
+		frames = []string{"Mem_Total"}
+	} else if query == "mem_usage_free_panel" {
+		frames = []string{"Mem_Free"}
+	} else if query == "mem_usage_used_panel" {
+		frames = []string{"Mem_Used"}
+	} else if query == "mem_cached_panel" {
+		frames = []string{"Mem_Cache"}
+	} else if query == "disk_reads_panel" {
+		frames = []string{"Disk_Reads"}
+	} else if query == "disk_writes_panel" {
+		frames = []string{"Disk_Writes"}
+	} else if query == "disk_used_panel" {
+		frames = []string{"Disk_Used"}
+	} else if query == "disk_available_panel" {
+		frames = []string{"Disk_Available"}
+	} else if query == "net_inbytes_panel" {
+		frames = []string{"Net_Inbytes"}
+	} else if query == "net_inpackets_panel" {
+		frames = []string{"Net_InPackets"}
+	} else if query == "net_outbytes_panel" {
+		frames = []string{"Net_Outbytes"}
+	} else if query == "net_outpackets_panel" {
+		frames = []string{"Net_Outpackets"}
 	}
 	return frames
 }
