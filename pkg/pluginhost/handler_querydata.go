@@ -346,7 +346,7 @@ func getFrameNames(elementType string, query string) []string {
 	var frames []string
 	baseURL := "https://api.synectiks.net/cmdb/cloud-element-supported-api/search"
 	//baseURL := "http://localhost:6057/api/cloud-element-supported-api/search"
-	cmdURL := baseURL + "?name=" + query + "&elementType" + elementType
+	cmdURL := baseURL + "?name=" + query + "&elementType=" + elementType
 
 	// Perform HTTP GET request
 	response, err := http.Get(cmdURL)
