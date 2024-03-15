@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/appkube/cloud-datasource/pkg/cloudwatch"
 	"github.com/appkube/cloud-datasource/pkg/infra/httpclient"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -131,8 +132,12 @@ func QueryData(ctx context.Context, backendQuery backend.DataQuery, infClient in
 			response.Frames = append(response.Frames, frame)
 		} else if respType == `frame` {
 			fmt.Println("creating frames....................................")
-			frameLabels := getFrameNames(query.QueryString)
-			//frameLabels := getFrameNames("cpu_usage_idle_panel")
+			var frameLabels []string
+
+			frameLabels = getFrameNames(query.ElementType, query.QueryString)
+
+			//frameLabels = getFrameNames("cpu_usage_idle_panel")
+
 			responseFrame, err := createResponseFrame(frame, time.RFC3339, frameLabels)
 			if err != nil {
 				return backend.DataResponse{}
@@ -332,45 +337,61 @@ func getAwsCredentials(landingZoneId int64, ctx context.Context, infClient infin
 	backend.Logger.Info("VAULT URL: " + query.URL)
 	return infClient.GetResults(ctx, query, requestHeaders)
 }
-func getFrameNames(query string) []string {
-	var frames []string
-	if query == "cpu_utilization_panel" {
-		frames = []string{"AverageUsage", "CurrentUsage", "MaxUsage"}
-	} else if query == "cpu_usage_idle_panel" {
-		frames = []string{"CPU_Idle"}
-	} else if query == "cpu_usage_nice_panel" {
-		frames = []string{"CPU_Nice"}
-	} else if query == "cpu_usage_sys_panel" {
-		frames = []string{"CPU_Sys"}
-	} else if query == "cpu_usage_user_panel" {
-		frames = []string{"CPU_User"}
-	} else if query == "mem_usage_total_panel" {
-		frames = []string{"Mem_Total"}
-	} else if query == "mem_usage_free_panel" {
-		frames = []string{"Mem_Free"}
-	} else if query == "mem_usage_used_panel" {
-		frames = []string{"Mem_Used"}
-	} else if query == "mem_cached_panel" {
-		frames = []string{"Mem_Cache"}
-	} else if query == "disk_reads_panel" {
-		frames = []string{"Disk_Reads"}
-	} else if query == "disk_writes_panel" {
-		frames = []string{"Disk_Writes"}
-	} else if query == "disk_used_panel" {
-		frames = []string{"Disk_Used"}
-	} else if query == "disk_available_panel" {
-		frames = []string{"Disk_Available"}
-	} else if query == "net_inbytes_panel" {
-		frames = []string{"Net_Inbytes"}
-	} else if query == "net_inpackets_panel" {
-		frames = []string{"Net_InPackets"}
-	} else if query == "net_outbytes_panel" {
-		frames = []string{"Net_Outbytes"}
-	} else if query == "net_outpackets_panel" {
-		frames = []string{"Net_Outpackets"}
+
+func getFrameNames(elementType string, query string) []string {
+	type FrameInfo struct {
+		Frames interface{} `json:"frames"`
 	}
+
+	var frames []string
+	baseURL := "https://api.synectiks.net/cmdb/cloud-element-supported-api/search"
+	//baseURL := "http://localhost:6057/api/cloud-element-supported-api/search"
+	cmdURL := baseURL + "?name=" + query + "&elementType" + elementType
+
+	// Perform HTTP GET request
+	response, err := http.Get(cmdURL)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return nil
+	}
+	defer response.Body.Close()
+
+	// Check if response status is successful
+	if response.StatusCode != http.StatusOK {
+		fmt.Println("Error: Non-OK HTTP status:", response.Status)
+		return nil
+	}
+
+	// Read the response body
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		fmt.Println("Error reading response:", err)
+		return nil
+	}
+
+	var frameInfos []FrameInfo
+	if err := json.Unmarshal(body, &frameInfos); err != nil {
+		fmt.Println("Error parsing JSON:", err)
+		return nil
+	}
+
+	for _, info := range frameInfos {
+		switch framesData := info.Frames.(type) {
+		case string:
+			// Split the comma-separated string and append each frame separately
+			frames = append(frames, strings.Split(framesData, ",")...)
+		case []interface{}:
+			for _, frame := range framesData {
+				if frameStr, ok := frame.(string); ok {
+					frames = append(frames, frameStr)
+				}
+			}
+		}
+	}
+
 	return frames
 }
+
 func createResponseFrame(frame *data.Frame, timeLayout string, frameLabels []string) ([]*data.Frame, error) {
 	var newFrames []*data.Frame
 
