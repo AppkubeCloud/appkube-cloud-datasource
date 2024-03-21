@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/appkube/cloud-datasource/pkg/cloudwatch"
 	"github.com/appkube/cloud-datasource/pkg/infra/httpclient"
+	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -95,7 +96,7 @@ func QueryData(ctx context.Context, backendQuery backend.DataQuery, infClient in
 		apiParam := "?elementId=" + strconv.FormatInt(query.ElementId, 10) + "&elementType=" + query.ElementType + "&query=" + query.QueryString
 		query.URL = query.AwsxUrl + apiParam
 
-		//query.URL = "http://localhost:7000/awsx-api/getQueryOutput?elementId=900000&elementType=EC2&query=cpu_usage_idle_panel&responseType=frame&startTime=2024-02-28T00:00:00Z&endTime=2024-02-28T23:59:59Z"
+		//query.URL = "http://localhost:7000/awsx-api/getQueryOutput?elementType=EC2&responseType=frame&elementId=900000&query=instance_stop_count_panel&startTime=2024-02-28T00:00:00Z&endTime=2024-02-29T23:59:59Z&logGroupName=CloudTrail/DefaultLogGroup"
 		fmt.Println("Appkube awsx url :" + query.URL)
 		urlOptions := models.URLOptions{
 			Method: "Get",
@@ -112,41 +113,70 @@ func QueryData(ctx context.Context, backendQuery backend.DataQuery, infClient in
 				{"endTime", backendQuery.TimeRange.To.Format(time.RFC3339)},
 
 				//{"responseType", "frame"},
-				//{"elementType", "AWS/EC2"},
+				//{"elementType", "EC2"},
 				//{"elementId", "900000"},
 				//{"startTime", "2024-02-28T00:00:00Z"},
 				//{"endTime", "2024-02-28T23:59:59Z"},
-				//{"query", "cpu_usage_idle_panel"},
+				//{"query", "instance_stop_count_panel"},
 			},
 		}
 
 		query.URLOptions = urlOptions
-		frame, err := infinity.GetFrameForURLSources(ctx, query, infClient, requestHeaders)
-		if err != nil {
-			response.Frames = append(response.Frames, frame)
-			response.Error = fmt.Errorf("error getting data frame from cloud elements. %w", err)
-			return response
-		}
-		if respType == "json" {
-
-			response.Frames = append(response.Frames, frame)
-		} else if respType == `frame` {
-			fmt.Println("creating frames....................................")
-			var frameLabels []string
-
-			frameLabels = getFrameNames(query.ElementType, query.QueryString)
-
-			//frameLabels = getFrameNames("cpu_usage_idle_panel")
-
-			responseFrame, err := createResponseFrame(frame, time.RFC3339, frameLabels)
+		if query.LogGroupName != "" {
+			urlResponseObject, _, _, err := infClient.GetResults(ctx, query, requestHeaders)
+			//abc,err := http.Get(newUrl)
 			if err != nil {
-				return backend.DataResponse{}
+				fmt.Println("Error:", err)
+				return
 			}
-			for _, frame := range responseFrame {
+			responseString, ok := urlResponseObject.(string)
+			if !ok {
+				backend.Logger.Error("url response cannot be typecast to string", "error")
+				return
+			}
+
+			var frameInfos []cloudwatchlogs.GetQueryResultsOutput
+			if err := json.Unmarshal([]byte(responseString), &frameInfos); err != nil {
+				fmt.Println("Error parsing JSON:", err)
+				return
+			}
+			var frameInfo cloudwatchlogs.GetQueryResultsOutput
+			for _, frameInfo = range frameInfos {
+				frame, err := cloudwatch.LogsResultsToDataframes(&frameInfo)
+				if err != nil {
+					return backend.DataResponse{}
+				}
+
 				response.Frames = append(response.Frames, frame)
 			}
-		}
+		} else {
+			frame, err := infinity.GetFrameForURLSources(ctx, query, infClient, requestHeaders)
+			if err != nil {
+				response.Frames = append(response.Frames, frame)
+				response.Error = fmt.Errorf("error getting data frame from cloud elements. %w", err)
+				return response
+			}
+			if respType == "json" {
 
+				response.Frames = append(response.Frames, frame)
+			} else if respType == `frame` {
+				fmt.Println("creating frames....................................")
+				var frameLabels []string
+
+				frameLabels = getFrameNames(query.ElementType, query.QueryString)
+
+				//frameLabels = getFrameNames("cpu_usage_idle_panel")
+
+				responseFrame, err := createResponseFrame(frame, time.RFC3339, frameLabels)
+				if err != nil {
+					return backend.DataResponse{}
+				}
+				for _, frame := range responseFrame {
+					response.Frames = append(response.Frames, frame)
+				}
+			}
+
+		}
 	case models.QueryTypeAppKubeMetrics:
 		apiUrl := fmt.Sprintf("http://localhost:7008/awsx-metric/metric")
 		fmt.Println("appkube-metrics api url :" + apiUrl)
@@ -546,3 +576,135 @@ func cerateFrameMetric(frame *data.Frame) (*data.Frame, error) {
 	}
 	return newFrame, nil
 }
+
+//func logsResultsToDataframes(response *cloudwatchlogs.GetQueryResultsOutput) (*data.Frame, error) {
+//	if response == nil {
+//		return nil, fmt.Errorf("response is nil, cannot convert log results to data frames")
+//	}
+//
+//	nonEmptyRows := make([][]*cloudwatchlogs.ResultField, 0)
+//	for _, row := range response.Results {
+//		// Sometimes CloudWatch can send empty rows
+//		if len(row) == 0 {
+//			continue
+//		}
+//		if len(row) == 1 {
+//			if row[0].Value == nil {
+//				continue
+//			}
+//			// Sometimes it sends rows with only timestamp
+//			if _, err := time.Parse("2006-01-02 15:04:05.000", *row[0].Value); err == nil {
+//				continue
+//			}
+//		}
+//		nonEmptyRows = append(nonEmptyRows, row)
+//	}
+//
+//	rowCount := len(nonEmptyRows)
+//
+//	fieldValues := make(map[string]interface{})
+//
+//	// Maintaining a list of field names in the order returned from CloudWatch
+//	// as just iterating over fieldValues would not give a consistent order
+//	fieldNames := make([]string, 0)
+//
+//	for i, row := range nonEmptyRows {
+//		for _, resultField := range row {
+//			// Strip @ptr field from results as it's not needed
+//			if *resultField.Field == "@ptr" {
+//				continue
+//			}
+//
+//			if _, exists := fieldValues[*resultField.Field]; !exists {
+//				fieldNames = append(fieldNames, *resultField.Field)
+//
+//				// Check if it's a time field
+//				if _, err := time.Parse("2006-01-02 15:04:05.000", *resultField.Value); err == nil {
+//					fieldValues[*resultField.Field] = make([]*time.Time, rowCount)
+//				} else if _, err := strconv.ParseFloat(*resultField.Value, 64); err == nil {
+//					fieldValues[*resultField.Field] = make([]*float64, rowCount)
+//				} else {
+//					fieldValues[*resultField.Field] = make([]*string, rowCount)
+//				}
+//			}
+//
+//			if timeField, ok := fieldValues[*resultField.Field].([]*time.Time); ok {
+//				parsedTime, err := time.Parse("2006-01-02 15:04:05.000", *resultField.Value)
+//				if err != nil {
+//					return nil, err
+//				}
+//
+//				timeField[i] = &parsedTime
+//			} else if numericField, ok := fieldValues[*resultField.Field].([]*float64); ok {
+//				parsedFloat, err := strconv.ParseFloat(*resultField.Value, 64)
+//				if err != nil {
+//					return nil, err
+//				}
+//				numericField[i] = &parsedFloat
+//			} else {
+//				fieldValues[*resultField.Field].([]*string)[i] = resultField.Value
+//			}
+//		}
+//	}
+//
+//	newFields := make([]*data.Field, 0, len(fieldNames))
+//	for _, fieldName := range fieldNames {
+//		newFields = append(newFields, data.NewField(fieldName, nil, fieldValues[fieldName]))
+//
+//		if fieldName == "@timestamp" {
+//			newFields[len(newFields)-1].SetConfig(&data.FieldConfig{DisplayName: "Time"})
+//		} else if fieldName == "__logstream__grafana_internal__" || fieldName == "__log__grafana_internal__" {
+//			newFields[len(newFields)-1].SetConfig(
+//				&data.FieldConfig{
+//					Custom: map[string]interface{}{
+//						"hidden": true,
+//					},
+//				},
+//			)
+//		}
+//	}
+//
+//	queryStats := make([]data.QueryStat, 0)
+//	if response.Statistics != nil {
+//		if response.Statistics.BytesScanned != nil {
+//			queryStats = append(queryStats, data.QueryStat{
+//				FieldConfig: data.FieldConfig{DisplayName: "Bytes scanned"},
+//				Value:       *response.Statistics.BytesScanned,
+//			})
+//		}
+//
+//		if response.Statistics.RecordsScanned != nil {
+//			queryStats = append(queryStats, data.QueryStat{
+//				FieldConfig: data.FieldConfig{DisplayName: "Records scanned"},
+//				Value:       *response.Statistics.RecordsScanned,
+//			})
+//		}
+//
+//		if response.Statistics.RecordsMatched != nil {
+//			queryStats = append(queryStats, data.QueryStat{
+//				FieldConfig: data.FieldConfig{DisplayName: "Records matched"},
+//				Value:       *response.Statistics.RecordsMatched,
+//			})
+//		}
+//	}
+//
+//	frame := data.NewFrame("CloudWatchLogsResponse", newFields...)
+//	frame.Meta = &data.FrameMeta{
+//		Stats:  nil,
+//		Custom: nil,
+//	}
+//
+//	if len(queryStats) > 0 {
+//		frame.Meta.Stats = queryStats
+//	}
+//
+//	if response.Status != nil {
+//		frame.Meta.Custom = map[string]interface{}{
+//			"Status": *response.Status,
+//		}
+//	}
+//
+//	// Results aren't guaranteed to come ordered by time (ascending), so we need to sort
+//	//sort.Sort(ByTime(*frame))
+//	return frame, nil
+//}
