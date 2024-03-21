@@ -29,7 +29,8 @@ export const getCloudElementsQuery = function (id: any, cloudElement: any, awsxU
         "elementType": cloudElement.elementType,
         "elementId": parseInt(id, 10),
         "cloudIdentifierId": cloudElement.instanceId,
-        "awsxUrl": awsxUrl
+        "awsxUrl": awsxUrl,
+        "logGroupName": cloudElement.logGroup
     };
 };
 
