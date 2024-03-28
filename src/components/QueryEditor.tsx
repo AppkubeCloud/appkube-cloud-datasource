@@ -11,6 +11,8 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: any) {
   const service = new Services(datasource.meta.jsonData.cmdbEndpoint || "", datasource.meta.jsonData.grafanaEndpoint || "");
   const [elementId, setElementId] = useState("");
   const [supportedPanels, setSupportedPanels] = useState([]);
+  const [allFrames, setAllFrames] = useState<Record<string, string>>({});
+  const [frames, setFrames] = useState([]);
   const onChanged = useRef(false);
 
   const getCloudElements = useCallback((id: string, query: any) => {
@@ -27,13 +29,16 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: any) {
           service.getSupportedPanels(cloudElement.elementType.toUpperCase(), "AWS").then((res) => {
             if (res && res.length > 0) {
               const panels: any = [];
+              const frames: any = {};
               res.map((panel: any) => {
                 panels.push({
                   label: panel.name,
                   value: panel.name
                 });
+                frames[panel.name] = panel.frames;
               });
               setSupportedPanels(panels);
+              setAllFrames(frames);
             }
           });
         }
@@ -71,17 +76,32 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: any) {
 
   const onChangeSupportedPanel = (value: any) => {
     onChange({ ...query, queryString: value });
+    const frame = allFrames[value];
+    if (frame) {
+      const arrFrames: any = frame.split(",").map(f => {
+        return {
+          label: f,
+          value: f
+        };
+      });
+      setFrames(arrFrames);
+    }
   };
 
   const onChangeResponseType = (value: any) => {
     onChange({ ...query, responseType: value });
   };
 
+  const onChangeFrame = (value: any) => {
+    onChange({ ...query, selectedFrame: value });
+  };
+
   const {
     elementType,
     cloudIdentifierId,
     queryString,
-    responseType
+    responseType,
+    selectedFrame
   } = query;
 
   return (
@@ -116,6 +136,15 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: any) {
               value={responseType}
               options={RESPONSE_TYPE}
               onChange={(e) => onChangeResponseType(e.value)}
+              menuShouldPortal={true}
+            />
+          </InlineField>
+          <InlineField label="Frames">
+            <Select
+              className="min-width-12 width-12"
+              value={selectedFrame}
+              options={frames}
+              onChange={(e) => onChangeFrame(e.value)}
               menuShouldPortal={true}
             />
           </InlineField>
