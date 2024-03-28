@@ -8,11 +8,15 @@ import { EditorRow, EditorRows } from '../extended/EditorRow';
 import { Services } from '../service';
 
 export function QueryEditor({ query, onChange, onRunQuery, datasource }: any) {
+  const defaultFrame = [{
+    label: "All",
+    value: ""
+  }];
   const service = new Services(datasource.meta.jsonData.cmdbEndpoint || "", datasource.meta.jsonData.grafanaEndpoint || "");
   const [elementId, setElementId] = useState("");
   const [supportedPanels, setSupportedPanels] = useState([]);
   const [allFrames, setAllFrames] = useState<Record<string, string>>({});
-  const [frames, setFrames] = useState([]);
+  const [frames, setFrames] = useState(defaultFrame);
   const onChanged = useRef(false);
 
   const getCloudElements = useCallback((id: string, query: any) => {
@@ -39,6 +43,19 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: any) {
               });
               setSupportedPanels(panels);
               setAllFrames(frames);
+              const { queryString } = query;
+              const frame = frames[queryString];
+              if (frame) {
+                const arrFrames: any = frame.split(",").map((f: any) => {
+                  return {
+                    label: f,
+                    value: f
+                  };
+                });
+                setFrames([...defaultFrame, ...arrFrames]);
+              } else {
+                setFrames([...defaultFrame]);
+              }
             }
           });
         }
@@ -84,7 +101,9 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: any) {
           value: f
         };
       });
-      setFrames(arrFrames);
+      setFrames([...defaultFrame, ...arrFrames]);
+    } else {
+      setFrames([...defaultFrame]);
     }
   };
 
