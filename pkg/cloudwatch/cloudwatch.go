@@ -416,7 +416,7 @@ func (e *cloudWatchExecutor) executeLogAlertQuery(ctx context.Context, req *back
 			return nil, err
 		}
 
-		dataframe, err := logsResultsToDataframes(getQueryResultsOutput)
+		dataframe, err := LogsResultsToDataframes(getQueryResultsOutput)
 		if err != nil {
 			return nil, err
 		}

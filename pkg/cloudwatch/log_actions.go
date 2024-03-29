@@ -333,7 +333,7 @@ func (e *cloudWatchExecutor) handleGetQueryResults(ctx context.Context, logsClie
 		return nil, err
 	}
 
-	dataFrame, err := logsResultsToDataframes(getQueryResultsOutput)
+	dataFrame, err := LogsResultsToDataframes(getQueryResultsOutput)
 	if err != nil {
 		return nil, err
 	}
