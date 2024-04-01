@@ -112,6 +112,7 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: any) {
   };
 
   const onChangeFrame = (value: any) => {
+    localStorage.setItem("datasource-selected-frame", value);
     onChange({ ...query, selectedFrame: value });
   };
 
